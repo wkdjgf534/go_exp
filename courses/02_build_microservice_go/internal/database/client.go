@@ -22,7 +22,7 @@ func NewDatabaseClient() (DatabaseClient, error) {
 		"localhost",
 		"postgres",
 		"postgres",
-		"postgres",
+		"test_db",
 		5432,
 		"disable",
 	)
