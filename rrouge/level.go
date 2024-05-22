@@ -5,12 +5,14 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/norendren/go-fov/fov"
 )
 
 // Level holds the tile information for a complete dungeon level.
 type Level struct {
-	Tiles []MapTile
-	Rooms []Rect
+	Tiles         []MapTile
+	Rooms         []Rect
+	PlayerVisible *fov.View
 }
 
 // MapTile is a single Tile on a given level
@@ -28,6 +30,7 @@ func NewLevel() Level {
 	rooms := make([]Rect, 0)
 	l.Rooms = rooms
 	l.GenerateLevelTiles()
+	l.PlayerVisible = fov.New()
 
 	return l
 }
@@ -36,17 +39,16 @@ func NewLevel() Level {
 func (level *Level) DrawLevel(screen *ebiten.Image) {
 	gd := NewGameData()
 
-	for x := 0; x < gd.ScreenWidth; x++ {
-		for y := 0; y < gd.ScreenHeight; y++ {
-
-			tile := level.Tiles[level.GetIndexFromXY(x, y)]
-			op := &ebiten.DrawImageOptions{}
-
-			op.GeoM.Translate(float64(tile.PixelX), float64(tile.PixelY))
-			screen.DrawImage(tile.Image, op)
+	for x := 0; x < gd.ScreenWidth; x += 1 {
+		for y := 0; y < gd.ScreenHeight; y += 1 {
+			if level.PlayerVisible.IsVisible(x, y) {
+				tile := level.Tiles[level.GetIndexFromXY(x, y)]
+				op := &ebiten.DrawImageOptions{}
+				op.GeoM.Translate(float64(tile.PixelX), float64(tile.PixelY))
+				screen.DrawImage(tile.Image, op)
+			}
 		}
 	}
-
 }
 
 // GetIndexFromXY gets the index of the map array from a given X,Y TILE coordinate.
@@ -103,6 +105,20 @@ func (level *Level) GenerateLevelTiles() {
 			contains_rooms = true
 		}
 	}
+}
+
+func (level Level) InBounds(x, y int) bool {
+	gd := NewGameData()
+	if x < 0 || x > gd.ScreenWidth || y < 0 || y > gd.ScreenHeight {
+		return false
+	}
+	return true
+}
+
+// TODO: Change this to check for WALL, not blocked
+func (level Level) IsOpaque(x, y int) bool {
+	idx := level.GetIndexFromXY(x, y)
+	return level.Tiles[idx].Blocked
 }
 
 func (level *Level) createHorizontalTunnel(x1 int, x2 int, y int) {
