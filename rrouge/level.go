@@ -17,10 +17,11 @@ type Level struct {
 
 // MapTile is a single Tile on a given level
 type MapTile struct {
-	PixelX  int
-	PixelY  int
-	Blocked bool
-	Image   *ebiten.Image
+	PixelX     int
+	PixelY     int
+	Blocked    bool
+	Image      *ebiten.Image
+	IsRevealed bool
 }
 
 // NewLevel creates a new game level in a dungeon.
@@ -39,12 +40,20 @@ func NewLevel() Level {
 func (level *Level) DrawLevel(screen *ebiten.Image) {
 	gd := NewGameData()
 
-	for x := 0; x < gd.ScreenWidth; x += 1 {
-		for y := 0; y < gd.ScreenHeight; y += 1 {
-			if level.PlayerVisible.IsVisible(x, y) {
-				tile := level.Tiles[level.GetIndexFromXY(x, y)]
+	for x := 0; x < gd.ScreenWidth; x++ {
+		for y := 0; y < gd.ScreenHeight; y++ {
+			idx := level.GetIndexFromXY(x, y)
+			tile := level.Tiles[idx]
+			isVis := level.PlayerVisible.IsVisible(x, y)
+			if isVis {
 				op := &ebiten.DrawImageOptions{}
 				op.GeoM.Translate(float64(tile.PixelX), float64(tile.PixelY))
+				screen.DrawImage(tile.Image, op)
+				level.Tiles[idx].IsRevealed = true
+			} else if tile.IsRevealed {
+				op := &ebiten.DrawImageOptions{}
+				op.GeoM.Translate(float64(tile.PixelX), float64(tile.PixelY))
+				op.ColorScale.Scale(100, 100, 100, 0.35)
 				screen.DrawImage(tile.Image, op)
 			}
 		}
@@ -164,10 +173,11 @@ func (level *Level) createTiles() []MapTile {
 				log.Fatal(err)
 			}
 			tile := MapTile{
-				PixelX:  x * gd.TileWidth,
-				PixelY:  y * gd.TileHeight,
-				Blocked: true,
-				Image:   wall,
+				PixelX:     x * gd.TileWidth,
+				PixelY:     y * gd.TileHeight,
+				Blocked:    true,
+				Image:      wall,
+				IsRevealed: false,
 			}
 			tiles[index] = tile
 		}
