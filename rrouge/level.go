@@ -15,14 +15,14 @@ const (
 	FLOOR
 )
 
-// Level holds the tile information for a complete dungeon level.
+//Level holds the tile information for a complete dungeon level.
 type Level struct {
-	Tiles         []MapTile
+	Tiles         []*MapTile
 	Rooms         []Rect
 	PlayerVisible *fov.View
 }
 
-// MapTile is a single Tile on a given level
+//MapTile is a single Tile on a given level
 type MapTile struct {
 	PixelX     int
 	PixelY     int
@@ -32,7 +32,7 @@ type MapTile struct {
 	TileType   TileType
 }
 
-// NewLevel creates a new game level in a dungeon.
+//NewLevel creates a new game level in a dungeon.
 func NewLevel() Level {
 	l := Level{}
 
@@ -40,11 +40,10 @@ func NewLevel() Level {
 	l.Rooms = rooms
 	l.GenerateLevelTiles()
 	l.PlayerVisible = fov.New()
-
 	return l
 }
 
-// DrawLevel draws the level onto the screen.
+//DrawLevel draws the level onto the screen.
 func (level *Level) DrawLevel(screen *ebiten.Image) {
 	gd := NewGameData()
 
@@ -58,24 +57,25 @@ func (level *Level) DrawLevel(screen *ebiten.Image) {
 				op.GeoM.Translate(float64(tile.PixelX), float64(tile.PixelY))
 				screen.DrawImage(tile.Image, op)
 				level.Tiles[idx].IsRevealed = true
-			} else if tile.IsRevealed {
+			} else if tile.IsRevealed == true {
 				op := &ebiten.DrawImageOptions{}
 				op.GeoM.Translate(float64(tile.PixelX), float64(tile.PixelY))
-				op.ColorScale.Scale(100, 100, 100, 0.35)
+				op.ColorM.Translate(100, 100, 100, 0.35)
 				screen.DrawImage(tile.Image, op)
 			}
 		}
 	}
+
 }
 
-// GetIndexFromXY gets the index of the map array from a given X,Y TILE coordinate.
-// This coordinate is logical tiles, not pixels.
+//GetIndexFromXY gets the index of the map array from a given X,Y TILE coordinate.
+//This coordinate is logical tiles, not pixels.
 func (level *Level) GetIndexFromXY(x int, y int) int {
 	gd := NewGameData()
 	return (y * gd.ScreenWidth) + x
 }
 
-// GenerateLevelTiles creates a new Dungeon Level Map.
+//GenerateLevelTiles creates a new Dungeon Level Map.
 func (level *Level) GenerateLevelTiles() {
 	MIN_SIZE := 6
 	MAX_SIZE := 10
@@ -122,20 +122,7 @@ func (level *Level) GenerateLevelTiles() {
 			contains_rooms = true
 		}
 	}
-}
 
-func (level Level) InBounds(x, y int) bool {
-	gd := NewGameData()
-	if x < 0 || x > gd.ScreenWidth || y < 0 || y > gd.ScreenHeight {
-		return false
-	}
-	return true
-}
-
-// TODO: Change this to check for WALL, not blocked
-func (level Level) IsOpaque(x, y int) bool {
-	idx := level.GetIndexFromXY(x, y)
-	return level.Tiles[idx].TileType == WALL
 }
 
 func (level *Level) createHorizontalTunnel(x1 int, x2 int, y int) {
@@ -150,6 +137,7 @@ func (level *Level) createHorizontalTunnel(x1 int, x2 int, y int) {
 				log.Fatal(err)
 			}
 			level.Tiles[index].Image = floor
+
 		}
 	}
 }
@@ -166,14 +154,15 @@ func (level *Level) createVerticalTunnel(y1 int, y2 int, x int) {
 				log.Fatal(err)
 			}
 			level.Tiles[index].Image = floor
+
 		}
 	}
 }
 
-// createTiles creates a map of all walls as a baseline for carving out a level.
-func (level *Level) createTiles() []MapTile {
+//createTiles creates a map of all walls as a baseline for carving out a level.
+func (level *Level) createTiles() []*MapTile {
 	gd := NewGameData()
-	tiles := make([]MapTile, gd.ScreenHeight*gd.ScreenWidth)
+	tiles := make([]*MapTile, gd.ScreenHeight*gd.ScreenWidth)
 	index := 0
 	for x := 0; x < gd.ScreenWidth; x++ {
 		for y := 0; y < gd.ScreenHeight; y++ {
@@ -190,7 +179,8 @@ func (level *Level) createTiles() []MapTile {
 				IsRevealed: false,
 				TileType:   WALL,
 			}
-			tiles[index] = tile
+			tiles[index] = &tile
+
 		}
 	}
 	return tiles
@@ -209,6 +199,18 @@ func (level *Level) createRoom(room Rect) {
 			level.Tiles[index].Image = floor
 		}
 	}
+}
+func (level Level) InBounds(x, y int) bool {
+	gd := NewGameData()
+	if x < 0 || x > gd.ScreenWidth || y < 0 || y > gd.ScreenHeight {
+		return false
+	}
+	return true
+}
+
+func (level Level) IsOpaque(x, y int) bool {
+	idx := level.GetIndexFromXY(x, y)
+	return level.Tiles[idx].TileType == WALL
 }
 
 // Max returns the larger of x or y.

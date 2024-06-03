@@ -45,7 +45,7 @@ func InitializeWorld(startingLevel Level) (*ecs.Manager, map[string]ecs.Tag) {
 			Y: y,
 		})
 
-	// Add a Monster in each room except the player's room
+	//Add a Monster in each room except the player's room
 	for _, room := range startingLevel.Rooms {
 		if room.X1 != startingRoom.X1 {
 			mX, mY := room.Center()
