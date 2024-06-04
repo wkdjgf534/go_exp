@@ -12,6 +12,7 @@ type TileType int
 
 var floor *ebiten.Image = nil
 var wall *ebiten.Image = nil
+var levelHeight int = 0
 
 const (
 	WALL TileType = iota
@@ -103,6 +104,7 @@ func (level *Level) GenerateLevelTiles() {
 	MAX_ROOMS := 30
 
 	gd := NewGameData()
+	levelHeight = gd.ScreenHeight - gd.UIHeight
 	tiles := level.createTiles()
 	level.Tiles = tiles
 	contains_rooms := false
