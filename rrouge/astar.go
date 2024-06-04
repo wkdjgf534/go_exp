@@ -5,10 +5,10 @@ import (
 	"reflect"
 )
 
-//Node represents a given point on a map
-//g is the total distance of the node from the start
-//h is the estimated distance of the node from the ending
-//f is the total value of the node (g + h)
+// Node represents a given point on a map
+// g is the total distance of the node from the start
+// h is the estimated distance of the node from the ending
+// f is the total value of the node (g + h)
 type node struct {
 	Parent   *node
 	Position *Position
@@ -18,7 +18,7 @@ type node struct {
 }
 
 func (n *node) isEqual(other *node) bool {
-	return (n.Position.X == other.Position.X && n.Position.Y == other.Position.Y)
+	return n.Position.IsEqual(other.Position)
 }
 
 func newNode(parent *node, position *Position) *node {
@@ -55,11 +55,11 @@ func isInSlice(s []*node, target *node) bool {
 	return false
 }
 
-//AStar implements the AStar Algorithm.
+// AStar implements the AStar Algorithm.
 type AStar struct{}
 
-//GetPath takes a level, the starting position and an ending position (the goal) and returns
-//a list of Positions which is the path between the points.
+// GetPath takes a level, the starting position and an ending position (the goal) and returns
+// a list of Positions which is the path between the points.
 func (as AStar) GetPath(level Level, start *Position, end *Position) []Position {
 	gd := NewGameData()
 
@@ -73,7 +73,6 @@ func (as AStar) GetPath(level Level, start *Position, end *Position) []Position 
 	startNode.f = 0
 
 	//Create this node just for ease of dropping into our isEqual function to see if we are at the end
-	//May be worth a refactor of changing the isEqual to test on Position.
 	endNodePlaceholder := newNode(nil, end)
 
 	openList = append(openList, startNode)

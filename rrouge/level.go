@@ -10,19 +10,22 @@ import (
 
 type TileType int
 
+var floor *ebiten.Image = nil
+var wall *ebiten.Image = nil
+
 const (
 	WALL TileType = iota
 	FLOOR
 )
 
-//Level holds the tile information for a complete dungeon level.
+// Level holds the tile information for a complete dungeon level.
 type Level struct {
 	Tiles         []*MapTile
 	Rooms         []Rect
 	PlayerVisible *fov.View
 }
 
-//MapTile is a single Tile on a given level
+// MapTile is a single Tile on a given level
 type MapTile struct {
 	PixelX     int
 	PixelY     int
@@ -32,9 +35,10 @@ type MapTile struct {
 	TileType   TileType
 }
 
-//NewLevel creates a new game level in a dungeon.
+// NewLevel creates a new game level in a dungeon.
 func NewLevel() Level {
 	l := Level{}
+	loadTileImages()
 
 	rooms := make([]Rect, 0)
 	l.Rooms = rooms
@@ -43,7 +47,24 @@ func NewLevel() Level {
 	return l
 }
 
-//DrawLevel draws the level onto the screen.
+func loadTileImages() {
+	if floor != nil && wall != nil {
+		return
+	}
+	var err error
+
+	floor, _, err = ebitenutil.NewImageFromFile("assets/floor.png")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	wall, _, err = ebitenutil.NewImageFromFile("assets/wall.png")
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+// DrawLevel draws the level onto the screen.
 func (level *Level) DrawLevel(screen *ebiten.Image) {
 	gd := NewGameData()
 
@@ -68,14 +89,14 @@ func (level *Level) DrawLevel(screen *ebiten.Image) {
 
 }
 
-//GetIndexFromXY gets the index of the map array from a given X,Y TILE coordinate.
-//This coordinate is logical tiles, not pixels.
+// GetIndexFromXY gets the index of the map array from a given X,Y TILE coordinate.
+// This coordinate is logical tiles, not pixels.
 func (level *Level) GetIndexFromXY(x int, y int) int {
 	gd := NewGameData()
 	return (y * gd.ScreenWidth) + x
 }
 
-//GenerateLevelTiles creates a new Dungeon Level Map.
+// GenerateLevelTiles creates a new Dungeon Level Map.
 func (level *Level) GenerateLevelTiles() {
 	MIN_SIZE := 6
 	MAX_SIZE := 10
@@ -132,10 +153,6 @@ func (level *Level) createHorizontalTunnel(x1 int, x2 int, y int) {
 		if index > 0 && index < gd.ScreenWidth*gd.ScreenHeight {
 			level.Tiles[index].Blocked = false
 			level.Tiles[index].TileType = FLOOR
-			floor, _, err := ebitenutil.NewImageFromFile("assets/floor.png")
-			if err != nil {
-				log.Fatal(err)
-			}
 			level.Tiles[index].Image = floor
 
 		}
@@ -149,17 +166,13 @@ func (level *Level) createVerticalTunnel(y1 int, y2 int, x int) {
 		if index > 0 && index < gd.ScreenWidth*gd.ScreenHeight {
 			level.Tiles[index].Blocked = false
 			level.Tiles[index].TileType = FLOOR
-			floor, _, err := ebitenutil.NewImageFromFile("assets/floor.png")
-			if err != nil {
-				log.Fatal(err)
-			}
 			level.Tiles[index].Image = floor
 
 		}
 	}
 }
 
-//createTiles creates a map of all walls as a baseline for carving out a level.
+// createTiles creates a map of all walls as a baseline for carving out a level.
 func (level *Level) createTiles() []*MapTile {
 	gd := NewGameData()
 	tiles := make([]*MapTile, gd.ScreenHeight*gd.ScreenWidth)
@@ -167,10 +180,6 @@ func (level *Level) createTiles() []*MapTile {
 	for x := 0; x < gd.ScreenWidth; x++ {
 		for y := 0; y < gd.ScreenHeight; y++ {
 			index = level.GetIndexFromXY(x, y)
-			wall, _, err := ebitenutil.NewImageFromFile("assets/wall.png")
-			if err != nil {
-				log.Fatal(err)
-			}
 			tile := MapTile{
 				PixelX:     x * gd.TileWidth,
 				PixelY:     y * gd.TileHeight,
@@ -192,10 +201,6 @@ func (level *Level) createRoom(room Rect) {
 			index := level.GetIndexFromXY(x, y)
 			level.Tiles[index].Blocked = false
 			level.Tiles[index].TileType = FLOOR
-			floor, _, err := ebitenutil.NewImageFromFile("assets/floor.png")
-			if err != nil {
-				log.Fatal(err)
-			}
 			level.Tiles[index].Image = floor
 		}
 	}
