@@ -50,15 +50,19 @@ func AttackSystem(g *Game, attackerPosition *Position, defenderPosition *Positio
 	attackerName := attacker.Components[name].(*Name).Label
 	attackerMessage := attacker.Components[userMessage].(*UserMessage)
 
+	// If the attacker is dead, don't let them attackerWeapon
+	if attacker.Components[health].(*Health).CurrentHealth <= 0 {
+		return
+	}
 	// Roll a d10 to hit
 	toHitRoll := GetDiceRoll(10)
 
 	if toHitRoll+attackerWeapon.ToHitBonus > defenderArmor.ArmorClass {
-		// It's a hit!
+		//It's a hit!
 		damageRoll := GetRandomBetween(attackerWeapon.MinimumDamage, attackerWeapon.MaximumDamage)
 
 		damageDone := damageRoll - defenderArmor.Defense
-		//Let's not have the weapon heal the defender
+		// Let's not have the weapon heal the defender
 		if damageDone < 0 {
 			damageDone = 0
 		}

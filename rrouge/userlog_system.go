@@ -65,14 +65,13 @@ func ProcessUserLog(g *Game, screen *ebiten.Image) {
 		if messages.DeadMessage != "" {
 			tmpMessages = append(tmpMessages, messages.DeadMessage)
 			anyMessages = true
-			//fmt.Printf(messages.DeadMessage)
 			messages.DeadMessage = ""
 			g.World.DisposeEntity(m.Entity)
 		}
 		if messages.GameStateMessage != "" {
 			tmpMessages = append(tmpMessages, messages.GameStateMessage)
 			anyMessages = true
-			//No need to clear, it's all over
+			// No need to clear, it's all over
 		}
 
 	}
