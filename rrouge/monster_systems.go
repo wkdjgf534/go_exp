@@ -15,14 +15,14 @@ func UpdateMonster(game *Game) {
 	}
 	for _, result := range game.World.Query(game.WorldTags["monsters"]) {
 		pos := result.Components[position].(*Position)
-		// mon := result.Components[monster].(*Monster)
+		//mon := result.Components[monster].(*Monster)
 
 		monsterSees := fov.New()
 		monsterSees.Compute(l, pos.X, pos.Y, 8)
 		if monsterSees.IsVisible(playerPosition.X, playerPosition.Y) {
 
 			if pos.GetManhattanDistance(&playerPosition) == 1 {
-				// The monster is right next to the player.  Just smack him down
+				//The monster is right next to the player.  Just smack him down
 				AttackSystem(game, pos, &playerPosition)
 				if result.Components[health].(*Health).CurrentHealth <= 0 {
 					//this monster is dead

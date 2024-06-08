@@ -78,7 +78,7 @@ func (level *Level) DrawLevel(screen *ebiten.Image) {
 				op.GeoM.Translate(float64(tile.PixelX), float64(tile.PixelY))
 				screen.DrawImage(tile.Image, op)
 				level.Tiles[idx].IsRevealed = true
-			} else if tile.IsRevealed == true {
+			} else if tile.IsRevealed {
 				op := &ebiten.DrawImageOptions{}
 				op.GeoM.Translate(float64(tile.PixelX), float64(tile.PixelY))
 				op.ColorM.Translate(100, 100, 100, 0.35)

@@ -10,7 +10,7 @@ func AttackSystem(g *Game, attackerPosition *Position, defenderPosition *Positio
 	var attacker *ecs.QueryResult = nil
 	var defender *ecs.QueryResult = nil
 
-	// Get the attacker and defender if either is a player
+	//Get the attacker and defender if either is a player
 	for _, playerCombatant := range g.World.Query(g.WorldTags["players"]) {
 		pos := playerCombatant.Components[position].(*Position)
 
@@ -23,7 +23,7 @@ func AttackSystem(g *Game, attackerPosition *Position, defenderPosition *Positio
 		}
 	}
 
-	// Get the attacker and defender if either is a monster
+	//Get the attacker and defender if either is a monster
 	for _, cbt := range g.World.Query(g.WorldTags["monsters"]) {
 		pos := cbt.Components[position].(*Position)
 
@@ -36,11 +36,11 @@ func AttackSystem(g *Game, attackerPosition *Position, defenderPosition *Positio
 		}
 
 	}
-	// If we somehow don't have an attacker or defender, just leave
+	//If we somehow don't have an attacker or defender, just leave
 	if attacker == nil || defender == nil {
 		return
 	}
-	// Grab the required information
+	//Grab the required information
 	defenderArmor := defender.Components[armor].(*Armor)
 	defenderHealth := defender.Components[health].(*Health)
 	defenderName := defender.Components[name].(*Name).Label
@@ -50,11 +50,11 @@ func AttackSystem(g *Game, attackerPosition *Position, defenderPosition *Positio
 	attackerName := attacker.Components[name].(*Name).Label
 	attackerMessage := attacker.Components[userMessage].(*UserMessage)
 
-	// If the attacker is dead, don't let them attackerWeapon
+	//if the attacker is dead, don't let them attackerWeapon
 	if attacker.Components[health].(*Health).CurrentHealth <= 0 {
 		return
 	}
-	// Roll a d10 to hit
+	//Roll a d10 to hit
 	toHitRoll := GetDiceRoll(10)
 
 	if toHitRoll+attackerWeapon.ToHitBonus > defenderArmor.ArmorClass {
@@ -62,7 +62,7 @@ func AttackSystem(g *Game, attackerPosition *Position, defenderPosition *Positio
 		damageRoll := GetRandomBetween(attackerWeapon.MinimumDamage, attackerWeapon.MaximumDamage)
 
 		damageDone := damageRoll - defenderArmor.Defense
-		// Let's not have the weapon heal the defender
+		//Let's not have the weapon heal the defender
 		if damageDone < 0 {
 			damageDone = 0
 		}
