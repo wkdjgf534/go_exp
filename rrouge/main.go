@@ -65,12 +65,10 @@ func (g *Game) Layout(w, h int) (int, int) {
 }
 
 func main() {
-
 	g := NewGame()
-	ebiten.SetWindowResizable(true)
+	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 
 	ebiten.SetWindowTitle("Tower")
-
 	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)
 	}
