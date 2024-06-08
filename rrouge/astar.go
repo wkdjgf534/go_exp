@@ -72,7 +72,7 @@ func (as AStar) GetPath(level Level, start *Position, end *Position) []Position 
 	startNode.h = 0
 	startNode.f = 0
 
-	//Create this node just for ease of dropping into our isEqual function to see if we are at the end
+	// Create this node just for ease of dropping into our isEqual function to see if we are at the end
 	endNodePlaceholder := newNode(nil, end)
 
 	openList = append(openList, startNode)
@@ -81,11 +81,11 @@ func (as AStar) GetPath(level Level, start *Position, end *Position) []Position 
 		if len(openList) == 0 {
 			break
 		}
-		//Get the current node
+		// Get the current node
 		currentNode := openList[0]
 		currentIndex := 0
 
-		//Get the node with the smallest f value
+		// Get the node with the smallest f value
 		for index, item := range openList {
 			if item.f < currentNode.f {
 				currentNode = item
@@ -93,12 +93,12 @@ func (as AStar) GetPath(level Level, start *Position, end *Position) []Position 
 			}
 		}
 
-		//Move from open to closed list
+		// Move from open to closed list
 		openList = append(openList[:currentIndex], openList[currentIndex+1:]...)
 		closedList = append(closedList, currentNode)
 
-		//Check to see if we reached our end
-		//If so, we are done here
+		// Check to see if we reached our end
+		// If so, we are done here
 		if currentNode.isEqual(endNodePlaceholder) {
 			path := make([]Position, 0)
 			current := currentNode
@@ -109,48 +109,45 @@ func (as AStar) GetPath(level Level, start *Position, end *Position) []Position 
 				path = append(path, *current.Position)
 				current = current.Parent
 			}
-			//Reverse the Path and Return it
+			// Reverse the Path and Return it
 			reverseSlice(path)
 			return path
 		}
 
-		//Ok, if we are here, we are not finished yet
-
+		// Ok, if we are here, we are not finished yet
 		edges := make([]*node, 0)
-		//Now we get each node in the four cardinal directions
-		//Note:  If you wish to add Diagonal movement, you can do so by getting all 8 positions
+		// Now we get each node in the four cardinal directions
+		// Note:  If you wish to add Diagonal movement, you can do so by getting all 8 positions
 		if currentNode.Position.Y > 0 {
 			tile := level.Tiles[level.GetIndexFromXY(currentNode.Position.X, currentNode.Position.Y-1)]
 			if tile.TileType != WALL {
-				//The location is in the map bounds and is walkable
+				// The location is in the map bounds and is walkable
 				upNodePosition := Position{
 					X: currentNode.Position.X,
 					Y: currentNode.Position.Y - 1,
 				}
 				newNode := newNode(currentNode, &upNodePosition)
 				edges = append(edges, newNode)
-
 			}
-
 		}
+
 		if currentNode.Position.Y < gd.ScreenHeight {
 			tile := level.Tiles[level.GetIndexFromXY(currentNode.Position.X, currentNode.Position.Y+1)]
 			if tile.TileType != WALL {
-				//The location is in the map bounds and is walkable
+				// The location is in the map bounds and is walkable
 				downNodePosition := Position{
 					X: currentNode.Position.X,
 					Y: currentNode.Position.Y + 1,
 				}
 				newNode := newNode(currentNode, &downNodePosition)
 				edges = append(edges, newNode)
-
 			}
-
 		}
+
 		if currentNode.Position.X > 0 {
 			tile := level.Tiles[level.GetIndexFromXY(currentNode.Position.X-1, currentNode.Position.Y)]
 			if tile.TileType != WALL {
-				//The location is in the map bounds and is walkable
+				// The location is in the map bounds and is walkable
 				leftNodePosition := Position{
 					X: currentNode.Position.X - 1,
 					Y: currentNode.Position.Y,
@@ -164,19 +161,17 @@ func (as AStar) GetPath(level Level, start *Position, end *Position) []Position 
 		if currentNode.Position.X < gd.ScreenWidth {
 			tile := level.Tiles[level.GetIndexFromXY(currentNode.Position.X+1, currentNode.Position.Y)]
 			if tile.TileType != WALL {
-				//The location is in the map bounds and is walkable
+				// The location is in the map bounds and is walkable
 				rightNodePosition := Position{
 					X: currentNode.Position.X + 1,
 					Y: currentNode.Position.Y,
 				}
 				newNode := newNode(currentNode, &rightNodePosition)
 				edges = append(edges, newNode)
-
 			}
-
 		}
 
-		//Now we iterate through the edges and put them in the open list.
+		// Now we iterate through the edges and put them in the open list.
 		for _, edge := range edges {
 			if isInSlice(closedList, edge) {
 				continue
@@ -187,7 +182,7 @@ func (as AStar) GetPath(level Level, start *Position, end *Position) []Position 
 			edge.f = edge.g + edge.h
 
 			if isInSlice(openList, edge) {
-				//Loop through and check g values
+				// Loop through and check g values
 				isFurther := false
 				for _, n := range openList {
 					if edge.g > n.g {
@@ -199,11 +194,9 @@ func (as AStar) GetPath(level Level, start *Position, end *Position) []Position 
 				if isFurther {
 					continue
 				}
-
 			}
 			openList = append(openList, edge)
 		}
-
 	}
 
 	return nil

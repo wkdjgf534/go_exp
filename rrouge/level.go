@@ -123,6 +123,7 @@ func (level *Level) GenerateLevelTiles() {
 				break
 			}
 		}
+
 		if okToAdd {
 			level.createRoom(new_room)
 			if contains_rooms {
@@ -190,9 +191,9 @@ func (level *Level) createTiles() []*MapTile {
 				TileType:   WALL,
 			}
 			tiles[index] = &tile
-
 		}
 	}
+
 	return tiles
 }
 
@@ -206,16 +207,19 @@ func (level *Level) createRoom(room Rect) {
 		}
 	}
 }
+
 func (level Level) InBounds(x, y int) bool {
 	gd := NewGameData()
 	if x < 0 || x > gd.ScreenWidth || y < 0 || y > levelHeight {
 		return false
 	}
+
 	return true
 }
 
 func (level Level) IsOpaque(x, y int) bool {
 	idx := level.GetIndexFromXY(x, y)
+
 	return level.Tiles[idx].TileType == WALL
 }
 
@@ -224,6 +228,7 @@ func max(x, y int) int {
 	if x < y {
 		return y
 	}
+
 	return x
 }
 
@@ -232,5 +237,6 @@ func min(x, y int) int {
 	if x > y {
 		return y
 	}
+
 	return x
 }

@@ -24,6 +24,7 @@ func ProcessHUD(g *Game, screen *ebiten.Image) {
 			log.Fatal(hudErr)
 		}
 	}
+
 	if hudFont == nil {
 		tt, err := opentype.Parse(fonts.MPlus1pRegular_ttf)
 		if err != nil {
@@ -40,6 +41,7 @@ func ProcessHUD(g *Game, screen *ebiten.Image) {
 			log.Fatal(err)
 		}
 	}
+
 	gd := NewGameData()
 
 	uiY := (gd.ScreenHeight - gd.UIHeight) * gd.TileHeight

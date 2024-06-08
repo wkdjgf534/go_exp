@@ -10,37 +10,38 @@ func AttackSystem(g *Game, attackerPosition *Position, defenderPosition *Positio
 	var attacker *ecs.QueryResult = nil
 	var defender *ecs.QueryResult = nil
 
-	//Get the attacker and defender if either is a player
+	// Get the attacker and defender if either is a player
 	for _, playerCombatant := range g.World.Query(g.WorldTags["players"]) {
 		pos := playerCombatant.Components[position].(*Position)
 
 		if pos.IsEqual(attackerPosition) {
-			//This is the attacker
+			// This is the attacker
 			attacker = playerCombatant
 		} else if pos.IsEqual(defenderPosition) {
-			//This is the defender
+			// This is the defender
 			defender = playerCombatant
 		}
 	}
 
-	//Get the attacker and defender if either is a monster
+	// Get the attacker and defender if either is a monster
 	for _, cbt := range g.World.Query(g.WorldTags["monsters"]) {
 		pos := cbt.Components[position].(*Position)
 
 		if pos.IsEqual(attackerPosition) {
-			//This is the attacker
+			// This is the attacker
 			attacker = cbt
 		} else if pos.IsEqual(defenderPosition) {
-			//This is the defender
+			// This is the defender
 			defender = cbt
 		}
-
 	}
-	//If we somehow don't have an attacker or defender, just leave
+
+	// If we somehow don't have an attacker or defender, just leave
 	if attacker == nil || defender == nil {
 		return
 	}
-	//Grab the required information
+
+	// Grab the required information
 	defenderArmor := defender.Components[armor].(*Armor)
 	defenderHealth := defender.Components[health].(*Health)
 	defenderName := defender.Components[name].(*Name).Label
@@ -50,11 +51,11 @@ func AttackSystem(g *Game, attackerPosition *Position, defenderPosition *Positio
 	attackerName := attacker.Components[name].(*Name).Label
 	attackerMessage := attacker.Components[userMessage].(*UserMessage)
 
-	//if the attacker is dead, don't let them attackerWeapon
+	// If the attacker is dead, don't let them attackerWeapon
 	if attacker.Components[health].(*Health).CurrentHealth <= 0 {
 		return
 	}
-	//Roll a d10 to hit
+	// Roll a d10 to hit
 	toHitRoll := GetDiceRoll(10)
 
 	if toHitRoll+attackerWeapon.ToHitBonus > defenderArmor.ArmorClass {

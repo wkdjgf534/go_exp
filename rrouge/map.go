@@ -16,6 +16,6 @@ func NewGameMap() GameMap {
 	dungeons := make([]Dungeon, 0)
 	dungeons = append(dungeons, d)
 	gm := GameMap{Dungeons: dungeons, CurrentLevel: l}
-	return gm
 
+	return gm
 }

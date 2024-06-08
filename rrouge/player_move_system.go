@@ -24,6 +24,7 @@ func TryMovePlayer(g *Game) {
 	if ebiten.IsKeyPressed(ebiten.KeyRight) {
 		x = 1
 	}
+
 	if ebiten.IsKeyPressed(ebiten.KeyQ) {
 		turnTaken = true
 	}
@@ -44,6 +45,7 @@ func TryMovePlayer(g *Game) {
 
 		}
 	}
+
 	if x != 0 || y != 0 || turnTaken {
 		g.Turn = GetNextState(g.Turn)
 		g.TurnCounter = 0
