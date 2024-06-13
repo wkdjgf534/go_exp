@@ -30,7 +30,13 @@ func main() {
 		log.Error("failed to init storage", sl.Err(err))
 		os.Exit(1)
 	}
+
 	_ = storage
+
+	//
+	// continue 43:48
+	//
+
 	// TODO: init router => chi, chi/render
 	// TODO: run server
 }
