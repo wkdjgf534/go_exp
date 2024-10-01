@@ -4,8 +4,9 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"quiz/questions"
 	"strings"
+
+	"quiz/questions"
 )
 
 func Run(questions []questions.Question) (correctAnswers uint) {
