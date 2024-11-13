@@ -9,8 +9,11 @@ func main() {
 	screenHeight := int32(450)
 	rl.InitWindow(800, 450, "Dungeon crawler")
 
-	player := NewPlayer(255, "TestPlayer", rl.NewVector2(float32(screenWidth)/2, float32(screenHeight)/2), 4.5)
-	enemy := NewEnemy(125, "Orc", rl.NewVector2(float32(screenWidth)/2, float32(screenHeight)/2), 1.5)
+	centerVector := rl.NewVector2(float32(screenWidth)/2, float32(screenHeight)/2)
+
+	player := NewPlayer("TestPlayer", centerVector, 4.5)
+	enemy := NewEnemy(125, "Orc", centerVector, 1.5)
+	camera := NewCamera(centerVector, centerVector, 1.0)
 
 	rl.SetTargetFPS(60)
 	for !rl.WindowShouldClose() {
@@ -27,11 +30,22 @@ func main() {
 			player.position.Y += player.speed
 		}
 
-		rl.BeginDrawing()
+		if rl.IsKeyPressed(rl.KeyEqual) && camera.Zoom < maxZoom {
+			camera.Zoom += 0.5
+		}
+		if rl.IsKeyPressed(rl.KeyMinus) && camera.Zoom > minZoom {
+			camera.Zoom -= 0.5
+		}
 
+		rl.BeginDrawing()
 		rl.ClearBackground(rl.RayWhite)
-		rl.DrawCircleV(player.position, 2, rl.Maroon)
-		rl.DrawCircleV(enemy.position, 5, rl.Red)
+		rl.BeginMode2D(*camera)
+
+		rl.DrawCircleV(player.position, camera.Zoom, rl.Maroon)
+		rl.DrawCircleV(enemy.position, camera.Zoom, rl.Red)
+
+		rl.EndMode2D()
+
 		rl.EndDrawing()
 	}
 	rl.CloseWindow()
