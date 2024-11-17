@@ -5,13 +5,13 @@ import (
 )
 
 const (
-	maxZoom = 5.0
-	minZoom = 1.0
+	screenWidth  = 1000
+	screenHeight = 480
+	maxZoom      = 5.0
+	minZoom      = 1.0
 )
 
 func main() {
-	screenWidth := int32(800)
-	screenHeight := int32(450)
 	rl.InitWindow(800, 450, "Dungeon crawler")
 	rl.HideCursor()
 
@@ -30,15 +30,15 @@ func main() {
 		cursorCamera := rl.GetScreenToWorld2D(cursor, camera)
 
 		rl.BeginDrawing()
-		rl.ClearBackground(rl.RayWhite)
 		rl.BeginMode2D(camera)
+
+		rl.ClearBackground(rl.RayWhite)
 
 		rl.DrawCircleV(player.position, camera.Zoom, rl.Black)
 		rl.DrawCircleV(enemy.position, camera.Zoom, rl.Red)
 		rl.DrawCircleLines(int32(cursorCamera.X), int32(cursorCamera.Y), 2, rl.Red)
 
 		rl.EndMode2D()
-
 		rl.EndDrawing()
 	}
 	rl.CloseWindow()
