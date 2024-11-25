@@ -1,11 +1,14 @@
 package main
 
 import (
-	"fmt"
+	"bytes"
 	"io"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/yuin/goldmark"
+	ghl "github.com/yuin/goldmark-highlighting/v2"
 )
 
 func main() {
@@ -49,6 +52,16 @@ func PostHandler(sl SlugReader) http.HandlerFunc {
 			http.Error(w, "Post not found", http.StatusNotFound)
 			return
 		}
-		fmt.Fprint(w, postMarkdown)
+		mdRenderer := goldmark.New(
+			goldmark.WithExtensions(ghl.Highlighting),
+		)
+
+		var buf bytes.Buffer
+		err = mdRenderer.Convert([]byte(postMarkdown), &buf)
+		if err != nil {
+			panic(err)
+		}
+
+		io.Copy(w, &buf)
 	}
 }
