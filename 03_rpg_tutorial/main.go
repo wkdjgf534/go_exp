@@ -5,11 +5,10 @@ import (
 	"image"
 	"image/color"
 	"log"
+	"rpg-tutorial/entities"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-
-	"rpg-tutorial/entities"
 )
 
 type Game struct {
@@ -18,11 +17,10 @@ type Game struct {
 	potions     []*entities.Potion
 	tilemapJSON *TilemapJSON
 	tilemapImg  *ebiten.Image
+	cam         *Camera
 }
 
 func (g *Game) Update() error {
-
-	// Move the player based on keyboar input (left, right, up down)
 	if ebiten.IsKeyPressed(ebiten.KeyLeft) {
 		g.player.X -= 2
 	}
@@ -64,10 +62,20 @@ func (g *Game) Update() error {
 
 	}
 
+	g.cam.FollowTarget(g.player.X + 8, g.player.Y + 8, 320, 240)
+	g.cam.Constrain(
+		float64(g.tilemapJSON.Layers[0].Width)*16.0,
+		float64(g.tilemapJSON.Layers[0].Height)*16.0,
+		320,
+		240,
+	)
+
 	return nil
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
+
+	// Fill the screen with a nice sky color
 	screen.Fill(color.RGBA{120, 180, 255, 255})
 
 	opts := ebiten.DrawImageOptions{}
@@ -86,7 +94,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			y *= 16
 
 			// Get the position on the image where the tile id is
-			srcX := (id - 1) % 22 // Last elemnet in a tileset row + 1
+			srcX := (id - 1) % 22
 			srcY := (id - 1) / 22
 
 			// Convert the src tile pos to pixel src position
@@ -95,6 +103,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 			// Set the drawimageoptions to draw the tile at x, y
 			opts.GeoM.Translate(float64(x), float64(y))
+
+			opts.GeoM.Translate(g.cam.X, g.cam.Y)
 
 			// Draw the tile
 			screen.DrawImage(
@@ -110,6 +120,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	// Set the translation of our drawImageOptions to the player's position
 	opts.GeoM.Translate(g.player.X, g.player.Y)
+	opts.GeoM.Translate(g.cam.X, g.cam.Y)
 
 	// Draw the player
 	screen.DrawImage(
@@ -124,6 +135,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	for _, sprite := range g.enemies {
 		opts.GeoM.Translate(sprite.X, sprite.Y)
+		opts.GeoM.Translate(g.cam.X, g.cam.Y)
 
 		screen.DrawImage(
 			sprite.Img.SubImage(
@@ -139,6 +151,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	for _, sprite := range g.potions {
 		opts.GeoM.Translate(sprite.X, sprite.Y)
+		opts.GeoM.Translate(g.cam.X, g.cam.Y)
 
 		screen.DrawImage(
 			sprite.Img.SubImage(
@@ -161,28 +174,23 @@ func main() {
 	ebiten.SetWindowTitle("Hello, World!")
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 
-	// Load the image from file
 	playerImg, _, err := ebitenutil.NewImageFromFile("assets/images/ninja.png")
 	if err != nil {
-		// Handle error
 		log.Fatal(err)
 	}
-	// Load the image from file
+
 	skeletonImg, _, err := ebitenutil.NewImageFromFile("assets/images/skeleton.png")
 	if err != nil {
-		// Handle error
 		log.Fatal(err)
 	}
 
 	potionImg, _, err := ebitenutil.NewImageFromFile("assets/images/potion.png")
 	if err != nil {
-		// Handle error
 		log.Fatal(err)
 	}
 
 	tilemapImg, _, err := ebitenutil.NewImageFromFile("assets/images/TilesetFloor.png")
 	if err != nil {
-		// Handle error
 		log.Fatal(err)
 	}
 
@@ -215,7 +223,7 @@ func main() {
 					X:   150.0,
 					Y:   50.0,
 				},
-				FollowsPlayer: true,
+				FollowsPlayer: false,
 			},
 		},
 		potions: []*entities.Potion{
@@ -230,6 +238,7 @@ func main() {
 		},
 		tilemapJSON: tilemapJSON,
 		tilemapImg:  tilemapImg,
+		cam:         NewCamera(0.0, 0.0),
 	}
 
 	if err := ebiten.RunGame(&game); err != nil {
