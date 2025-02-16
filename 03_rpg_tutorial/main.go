@@ -5,10 +5,11 @@ import (
 	"image"
 	"image/color"
 	"log"
-	"rpg-tutorial/entities"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+
+	"rpg-tutorial/entities"
 )
 
 type Game struct {
@@ -16,11 +17,13 @@ type Game struct {
 	enemies     []*entities.Enemy
 	potions     []*entities.Potion
 	tilemapJSON *TilemapJSON
+	tilesets    []Tileset
 	tilemapImg  *ebiten.Image
 	cam         *Camera
 }
 
 func (g *Game) Update() error {
+	// Move the player based on keyboar input (left, right, up down)
 	if ebiten.IsKeyPressed(ebiten.KeyLeft) {
 		g.player.X -= 2
 	}
@@ -36,7 +39,6 @@ func (g *Game) Update() error {
 
 	// Add behavior to the enemies
 	for _, sprite := range g.enemies {
-
 		if sprite.FollowsPlayer {
 			if sprite.X < g.player.X {
 				sprite.X += 1
@@ -49,20 +51,17 @@ func (g *Game) Update() error {
 				sprite.Y -= 1
 			}
 		}
-
 	}
 
 	// Handle simple potion functionality
 	for _, potion := range g.potions {
-
 		if g.player.X > potion.X {
 			g.player.Health += potion.AmtHeal
 			fmt.Printf("Picked up potion! Health: %d\n", g.player.Health)
 		}
-
 	}
 
-	g.cam.FollowTarget(g.player.X + 8, g.player.Y + 8, 320, 240)
+	g.cam.FollowTarget(g.player.X+8, g.player.Y+8, 320, 240)
 	g.cam.Constrain(
 		float64(g.tilemapJSON.Layers[0].Width)*16.0,
 		float64(g.tilemapJSON.Layers[0].Height)*16.0,
@@ -74,16 +73,18 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-
 	// Fill the screen with a nice sky color
 	screen.Fill(color.RGBA{120, 180, 255, 255})
 
 	opts := ebiten.DrawImageOptions{}
 
 	// Loop over the layers
-	for _, layer := range g.tilemapJSON.Layers {
+	for layerIndex, layer := range g.tilemapJSON.Layers {
 		// Loop over the tiles in the layer data
 		for index, id := range layer.Data {
+			if id == 0 {
+				continue
+			}
 
 			// Get the tile position of the tile
 			x := index % layer.Width
@@ -93,25 +94,13 @@ func (g *Game) Draw(screen *ebiten.Image) {
 			x *= 16
 			y *= 16
 
-			// Get the position on the image where the tile id is
-			srcX := (id - 1) % 22
-			srcY := (id - 1) / 22
+			img := g.tilesets[layerIndex].Img(id)
 
-			// Convert the src tile pos to pixel src position
-			srcX *= 16
-			srcY *= 16
-
-			// Set the drawimageoptions to draw the tile at x, y
 			opts.GeoM.Translate(float64(x), float64(y))
-
+			opts.GeoM.Translate(0.0, -(float64(img.Bounds().Dy()) + 16))
 			opts.GeoM.Translate(g.cam.X, g.cam.Y)
 
-			// Draw the tile
-			screen.DrawImage(
-				// Cropping out the tile that we want from the spritesheet
-				g.tilemapImg.SubImage(image.Rect(srcX, srcY, srcX+16, srcY+16)).(*ebiten.Image),
-				&opts,
-			)
+			screen.DrawImage(img, &opts)
 
 			// Reset the opts for the next tile
 			opts.GeoM.Reset()
@@ -125,9 +114,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	// Draw the player
 	screen.DrawImage(
 		// Grab a subimage of the spritesheet
-		g.player.Img.SubImage(
-			image.Rect(0, 0, 16, 16),
-		).(*ebiten.Image),
+		g.player.Img.SubImage(image.Rect(0, 0, 16, 16)).(*ebiten.Image),
 		&opts,
 	)
 
@@ -138,9 +125,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		opts.GeoM.Translate(g.cam.X, g.cam.Y)
 
 		screen.DrawImage(
-			sprite.Img.SubImage(
-				image.Rect(0, 0, 16, 16),
-			).(*ebiten.Image),
+			sprite.Img.SubImage(image.Rect(0, 0, 16, 16)).(*ebiten.Image),
 			&opts,
 		)
 
@@ -154,15 +139,12 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		opts.GeoM.Translate(g.cam.X, g.cam.Y)
 
 		screen.DrawImage(
-			sprite.Img.SubImage(
-				image.Rect(0, 0, 16, 16),
-			).(*ebiten.Image),
+			sprite.Img.SubImage(image.Rect(0, 0, 16, 16)).(*ebiten.Image),
 			&opts,
 		)
 
 		opts.GeoM.Reset()
 	}
-
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
@@ -195,6 +177,11 @@ func main() {
 	}
 
 	tilemapJSON, err := NewTilemapJSON("assets/maps/spawn.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	tilesets, err := tilemapJSON.GenTilesets()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -238,6 +225,7 @@ func main() {
 		},
 		tilemapJSON: tilemapJSON,
 		tilemapImg:  tilemapImg,
+		tilesets:    tilesets,
 		cam:         NewCamera(0.0, 0.0),
 	}
 
