@@ -69,6 +69,7 @@ func (e *EnemyCombat) Attack() bool {
 		e.timeSinceAttack = 0
 		return true
 	}
+
 	return false
 }
 
