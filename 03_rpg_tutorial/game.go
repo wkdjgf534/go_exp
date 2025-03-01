@@ -5,12 +5,16 @@ import (
 	"image"
 	"image/color"
 	"log"
+	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 
 	"rpg-tutorial/animations"
+	"rpg-tutorial/components"
+	"rpg-tutorial/constants"
 	"rpg-tutorial/entities"
 	"rpg-tutorial/spritesheet"
 )
@@ -75,6 +79,7 @@ func NewGame() *Game {
 				entities.Left:  animations.NewAnimation(6, 14, 4, 20.0),
 				entities.Right: animations.NewAnimation(7, 15, 4, 20.0),
 			},
+			CombatComp: components.NewBasicCombat(3, 1),
 		},
 		playerSpriteSheet: playerSpriteSheet,
 		enemies: []*entities.Enemy{
@@ -85,6 +90,7 @@ func NewGame() *Game {
 					Y:   100.0,
 				},
 				FollowsPlayer: true,
+				CombatComp: components.NewEnemyCombat(3, 1, 30),
 			},
 			{
 				Sprite: &entities.Sprite{
@@ -93,6 +99,7 @@ func NewGame() *Game {
 					Y:   50.0,
 				},
 				FollowsPlayer: false,
+				CombatComp: components.NewEnemyCombat(3, 1, 30),
 			},
 		},
 		potions: []*entities.Potion{
@@ -170,13 +177,79 @@ func (g *Game) Update() error {
 
 	}
 
-	// Handle simple potion functionality
-	for _, potion := range g.potions {
-		if g.player.X > potion.X {
-			g.player.Health += potion.AmtHeal
-			fmt.Printf("Picked up potion! Health: %d\n", g.player.Health)
+	clicked := inpututil.IsMouseButtonJustPressed(ebiten.MouseButton0)
+	cX, cY := ebiten.CursorPosition()
+	// Fix cursor position during player moves
+	cX -= int(g.cam.X)
+	cY -= int(g.cam.Y)
+
+	g.player.CombatComp.Update()
+	pRect := image.Rect(
+			int(g.player.X),
+			int(g.player.Y),
+			int(g.player.X) + constants.Tilesize,
+			int(g.player.Y) + constants.Tilesize,
+	)
+
+
+	deadEnemies := make(map[int]struct{})
+	for index, enemy := range g.enemies {
+		enemy.CombatComp.Update()
+		rect := image.Rect(
+			int(enemy.X),
+			int(enemy.Y),
+			int(enemy.X) + constants.Tilesize,
+			int(enemy.Y) + constants.Tilesize,
+		)
+
+		// if enemy overlaps player
+		if rect.Overlaps(pRect) {
+			if enemy.CombatComp.Attack() {
+				g.player.CombatComp.Damage(enemy.CombatComp.AttackPower())
+				fmt.Printf("player has been damaged, health: %d\n", g.player.CombatComp.Health())
+				if g.player.CombatComp.Health() <= 0 {
+					fmt.Println("player has died")
+				}
+			}
+		}
+
+		collision := math.Sqrt(
+			math.Pow(float64(cX)-g.player.X+(constants.Tilesize/2), 2) + math.Pow(float64(cY)-g.player.Y+(constants.Tilesize/2), 2),
+		) < constants.Tilesize * 5
+
+		// Is cursor in rect?
+		if cX > rect.Min.X && cX < rect.Max.X && cY > rect.Min.Y && cY < rect.Max.Y {
+			if clicked && collision {
+				fmt.Println("damaging enemy")
+				enemy.CombatComp.Damage(g.player.CombatComp.AttackPower())
+
+				if enemy.CombatComp.Health() <= 0 {
+					deadEnemies[index] = struct{}{}
+					fmt.Println("enemy has been eliminated")
+				}
+			}
 		}
 	}
+
+	if len(deadEnemies) > 0 {
+		newEnemies := make([]*entities.Enemy, 0)
+
+		for index, enemy := range g.enemies {
+			if _, exists := deadEnemies[index]; !exists {
+				newEnemies = append(newEnemies, enemy)
+			}
+		}
+
+		g.enemies = newEnemies
+	}
+
+	// Handle simple potion functionality
+	// for _, potion := range g.potions {
+	// 	if g.player.X > potion.X {
+	//		g.player.Health += potion.AmtHeal
+	//		fmt.Printf("Picked up potion! Health: %d\n", g.player.Health)
+	//	}
+	// }
 
 	g.cam.FollowTarget(g.player.X+8, g.player.Y+8, 320, 240)
 	g.cam.Constrain(
