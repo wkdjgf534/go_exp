@@ -47,8 +47,6 @@ func (b *BasicCombat) Attack() bool {
 func (b *BasicCombat) Update() {
 }
 
-var _ Combat = (*BasicCombat)(nil)
-
 type EnemyCombat struct {
 	*BasicCombat
 	attackCooldown  int
@@ -76,5 +74,3 @@ func (e *EnemyCombat) Attack() bool {
 func (e *EnemyCombat) Update() {
 	e.timeSinceAttack += 1
 }
-
-var _ Combat = (*EnemyCombat)(nil)

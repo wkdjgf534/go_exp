@@ -3,17 +3,16 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "",
+    "activeFile": "spawn.json",
     "expandedProjectPaths": [
     ],
-    "file.lastUsedOpenFilter": "All Files (*)",
     "fileStates": {
         "spawn.json": {
-            "scale": 1,
+            "scale": 2,
             "selectedLayer": 0,
             "viewCenter": {
-                "x": 198.5,
-                "y": 237.5
+                "x": 262.75,
+                "y": 231.25
             }
         },
         "tilesets/TilesetFloor.json": {
@@ -39,6 +38,9 @@
     "map.tileWidth": 16,
     "map.width": 100,
     "openFiles": [
+        "spawn.json",
+        "tilesets/TilesetFloor.json",
+        "tilesets/buildings.json"
     ],
     "project": "rpg.tiled-project",
     "recentFiles": [
