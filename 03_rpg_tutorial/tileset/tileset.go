@@ -1,4 +1,4 @@
-package main
+package tileset
 
 import (
 	"encoding/json"
@@ -9,6 +9,8 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
+
+	"rpg-tutorial/constants"
 )
 
 // Every tileset must be able to give an image given an id
@@ -35,10 +37,14 @@ func (u *UniformTileset) Img(id int) *ebiten.Image {
 	srcY := id / 22
 
 	// Convert the src tile pos to pixel src position
-	srcX *= 16
-	srcY *= 16
+	srcX *= constants.Tilesize
+	srcY *= constants.Tilesize
 
-	return u.img.SubImage(image.Rect(srcX, srcY, srcX + 16, srcY + 16)).(*ebiten.Image)
+	return u.img.SubImage(
+		image.Rect(
+			srcX, srcY, srcX+constants.Tilesize, srcY+constants.Tilesize,
+		),
+	).(*ebiten.Image)
 }
 
 type TileJSON struct {
@@ -70,8 +76,8 @@ func NewTileset(path string, gid int) (Tileset, error) {
 		return nil, err
 	}
 
-	// For dynamic part
 	if strings.Contains(path, "buildings") {
+		// Return dyn tileset
 		var dynTilesetJSON DynTilesetJSON
 		err = json.Unmarshal(contents, &dynTilesetJSON)
 		if err != nil {
@@ -86,7 +92,7 @@ func NewTileset(path string, gid int) (Tileset, error) {
 		// Loop over tile data and load image for each
 		for _, tileJSON := range dynTilesetJSON.Tiles {
 
-			// convert tileset relative path to root relative path
+			// Convert tileset relative path to root relative path
 			tileJSONPath := tileJSON.Path
 			tileJSONPath = filepath.Clean(tileJSONPath)
 			tileJSONPath = strings.ReplaceAll(tileJSONPath, "\\", "/")
@@ -104,7 +110,6 @@ func NewTileset(path string, gid int) (Tileset, error) {
 
 		return &dynTileset, nil
 	}
-
 	// Return uniform tileset
 	var uniformTilesetJSON UniformTilesetJSON
 	err = json.Unmarshal(contents, &uniformTilesetJSON)
@@ -126,7 +131,6 @@ func NewTileset(path string, gid int) (Tileset, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	uniformTileset.img = img
 	uniformTileset.gid = gid
 
