@@ -1,10 +1,9 @@
 package main
 
 import (
-	assests "go-asteroids/assets"
-	"go/scanner"
-
 	"github.com/hajimehoshi/ebiten/v2"
+
+	assests "go-asteroids/assets"
 )
 
 type Player struct {
