@@ -1,4 +1,4 @@
-package assests
+package assets
 
 import (
 	"embed"
@@ -9,7 +9,7 @@ import (
 )
 
 //go:embed *
-var assests embed.FS
+var assets embed.FS
 
 var PlayerSprite = mustLoadImage("images/player.png")
 
