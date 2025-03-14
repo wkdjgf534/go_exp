@@ -9,7 +9,7 @@ import (
 )
 
 type Player struct {
-	game           *Game
+	game           *GameScene
 	sprite         *ebiten.Image
 	rotation       float64
 	position       Vector
@@ -25,7 +25,7 @@ const (
 
 var curAcceleration float64
 
-func NewPlayer(game *Game) *Player {
+func NewPlayer(game *GameScene) *Player {
 	sprite := assets.PlayerSprite
 
 	// Center player on screen
