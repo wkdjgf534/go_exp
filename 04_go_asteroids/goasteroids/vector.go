@@ -8,7 +8,6 @@ type Vector struct {
 }
 
 func (v Vector) Normalize() Vector {
-	magnitude := math.Sqrt(v.X * v.X + v.Y * v.Y)
-
-	return Vector{ v.X / magnitude, v.Y / magnitude }
+	magnitude := math.Sqrt(v.X*v.X + v.Y*v.Y)
+	return Vector{v.X / magnitude, v.Y / magnitude}
 }

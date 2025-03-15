@@ -8,7 +8,6 @@ import (
 
 func main() {
 
-
 	ebiten.SetWindowTitle("Go Asteroids")
 	ebiten.SetWindowSize(goasteroids.ScreenWidth, goasteroids.ScreenHeight)
 

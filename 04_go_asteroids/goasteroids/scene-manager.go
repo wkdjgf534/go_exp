@@ -1,12 +1,10 @@
 package goasteroids
 
-import (
-	"github.com/hajimehoshi/ebiten/v2"
-)
+import "github.com/hajimehoshi/ebiten/v2"
 
 var (
 	transitionFrom = ebiten.NewImage(ScreenWidth, ScreenHeight)
-	transitionTo = ebiten.NewImage(ScreenWidth, ScreenHeight)
+	transitionTo   = ebiten.NewImage(ScreenWidth, ScreenHeight)
 )
 
 const transitionMaxCount = 25
@@ -22,14 +20,14 @@ type Scene interface {
 // and Input (so we can get the keys pressed on the keyboard).
 type State struct {
 	SceneManager *SceneManager
-	Input *Input
+	Input        *Input
 }
 
 // SceneManager is the type used to manage scenes. We keep track of what scene we are on, and when
 // going to a new scene, what that scene is (so we can fade things in & out nicely).
 type SceneManager struct {
-	current Scene
-	next Scene
+	current         Scene
+	next            Scene
 	transitionCount int
 }
 
@@ -64,14 +62,12 @@ func (s *SceneManager) Update(_ *Input) error {
 	}
 
 	s.transitionCount--
-
 	if s.transitionCount > 0 {
 		return nil
 	}
 
 	s.current = s.next
 	s.next = nil
-
 	return nil
 }
 

@@ -11,16 +11,16 @@ type Game struct {
 }
 
 // Input is a stub type so that we can use Game as an ebiten.Game interface in the call to ebiten.RunGame.
-type Input struct {}
+type Input struct{}
 
 // Update is required to satisfy the interface requirements for calling ebiten.RunGame. It's a stub, but we need it.
 func (i *Input) Update() {}
 
 // Update manages scenes, and updates input (which is sent to each scene).
 func (g *Game) Update() error {
-	if g.sceneManager != nil {
+	if g.sceneManager == nil {
 		g.sceneManager = &SceneManager{}
-		g.sceneManager.GoToScene(NewGameScene())
+		g.sceneManager.GoToScene(&TitleScene{})
 	}
 
 	g.input.Update()
@@ -37,6 +37,6 @@ func (g *Game) Draw(screen *ebiten.Image) {
 }
 
 // Layout is required in order to satisfy the ebiten.Game interface.
-func (g *Game) Layout(_, _ int) (screenWidth, screeHeight int) {
+func (g *Game) Layout(_, _ int) (screenWidth, screenHeight int) {
 	return ScreenWidth, ScreenHeight
 }
