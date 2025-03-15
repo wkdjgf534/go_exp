@@ -1,45 +1,45 @@
-package main
+package goasteroids
 
 import (
+	"go-asteroids/assets"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
-
-	"go-asteroids/assets"
 )
 
+const (
+	rotationPerSecond = math.Pi
+	maxAcceleration   = 8.0
+	ScreenWidth       = 1280 // The width of the screen. We use a 16/9 aspect ratio.
+	ScreenHeight      = 720  // The height of the screen.
+)
+
+var curAcceleration float64
+
 type Player struct {
-	game           *Game
+	game           *GameScene
 	sprite         *ebiten.Image
 	rotation       float64
 	position       Vector
 	playerVelocity float64
 }
 
-const (
-	rotationPerSecond = math.Pi
-	maxAcceleration = 8.0
-	ScreenWidth     = 1280
-	ScreenHeight    = 720
-)
-
-var curAcceleration float64
-
-func NewPlayer(game *Game) *Player {
+func NewPlayer(game *GameScene) *Player {
 	sprite := assets.PlayerSprite
 
-	// Center player on screen
+	// Center player on screen.
 	bounds := sprite.Bounds()
 	halfW := float64(bounds.Dx()) / 2
 	halfH := float64(bounds.Dy()) / 2
+
 	pos := Vector{
-		X: ScreenWidth / 2 - halfW,
-		Y: ScreenHeight / 2 - halfH,
+		X: ScreenWidth/2 - halfW,
+		Y: ScreenHeight/2 - halfH,
 	}
 
 	p := &Player{
-		sprite: sprite,
-		game:   game,
+		sprite:   sprite,
+		game:     game,
 		position: pos,
 	}
 
@@ -48,18 +48,15 @@ func NewPlayer(game *Game) *Player {
 
 func (p *Player) Draw(screen *ebiten.Image) {
 	bounds := p.sprite.Bounds()
-	// Gets a half of width and height of an object
 	halfW := float64(bounds.Dx()) / 2
 	halfH := float64(bounds.Dy()) / 2
 
 	op := &ebiten.DrawImageOptions{}
 
-	// Rotates an image according to what key is pressed
 	op.GeoM.Translate(-halfW, -halfH)
 	op.GeoM.Rotate(p.rotation)
 	op.GeoM.Translate(halfW, halfH)
 
-	// Moves
 	op.GeoM.Translate(p.position.X, p.position.Y)
 
 	screen.DrawImage(p.sprite, op)
@@ -84,7 +81,7 @@ func (p *Player) accelerate() {
 		p.keepOnScreen()
 
 		if curAcceleration < maxAcceleration {
-			curAcceleration += p.playerVelocity + 4
+			curAcceleration = p.playerVelocity + 4
 		}
 
 		if curAcceleration >= 8 {
@@ -93,11 +90,11 @@ func (p *Player) accelerate() {
 
 		p.playerVelocity = curAcceleration
 
-		// Move in the directon we are pointing.
+		// Move in the direction we are pointing.
 		dx := math.Sin(p.rotation) * curAcceleration
-		dy := math.Cos(p.rotation) * - curAcceleration
+		dy := math.Cos(p.rotation) * -curAcceleration
 
-		// Move player on the screen
+		// Move the player on the screen.
 		p.position.X += dx
 		p.position.Y += dy
 	}
@@ -107,15 +104,12 @@ func (p *Player) keepOnScreen() {
 	if p.position.X >= float64(ScreenWidth) {
 		p.position.X = 0
 	}
-
 	if p.position.X < 0 {
 		p.position.X = ScreenWidth
 	}
-
 	if p.position.Y >= float64(ScreenHeight) {
 		p.position.Y = 0
 	}
-
 	if p.position.Y < 0 {
 		p.position.Y = ScreenHeight
 	}
