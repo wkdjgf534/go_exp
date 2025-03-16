@@ -6,7 +6,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
-	"golang.org/x/image/font"
 
 	"go-asteroids/assets"
 )
@@ -21,6 +20,7 @@ func (t *TitleScene) Draw(screen *ebiten.Image) {
 			PrimaryAlign: text.AlignCenter,
 		},
 	}
+
 	op.ColorScale.ScaleWithColor(color.White)
 	op.GeoM.Translate(float64(ScreenWidth/2), ScreenHeight-200)
 	text.Draw(screen, textToDraw, &text.GoTextFace{
