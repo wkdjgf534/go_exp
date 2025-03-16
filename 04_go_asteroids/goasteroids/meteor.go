@@ -10,19 +10,19 @@ import (
 )
 
 const (
-	rotationSpeedMin = -0.02
-	rotationSpeedMax = 0.02
+	rotationSpeedMin                    = -0.02
+	rotationSpeedMax                    = 0.02
 	numberOfSmallMeteorsFromLargeMeteor = 4
 )
 
 type Meteor struct {
-	game *GameScene
-	position Vector
-	rotation float64
-	movement Vector
-	angle float64
+	game          *GameScene
+	position      Vector
+	rotation      float64
+	movement      Vector
+	angle         float64
 	rotationSpeed float64
-	sprite *ebiten.Image
+	sprite        *ebiten.Image
 }
 
 func NewMeteor(baseVelocity float64, g *GameScene, index int) *Meteor {
@@ -38,7 +38,7 @@ func NewMeteor(baseVelocity float64, g *GameScene, index int) *Meteor {
 	// The distance from the center that meteor should spawn at. Half the width, add some arbitrary distance.
 	r := ScreenWidth/2.0 + 500
 
-	// Create the position vector, using th angle and simple math.
+	// Create the position vector, using the angle and simple math.
 	pos := Vector {
 		X: target.X + math.Cos(angle)*r,
 		Y: target.Y + math.Sin(angle)*r,
@@ -53,7 +53,6 @@ func NewMeteor(baseVelocity float64, g *GameScene, index int) *Meteor {
 		X: target.X - pos.X,
 		Y: target.Y - pos.Y,
 	}
-
 	normalizedDirection := direction.Normalize()
 
 	// Create the movement vector.
@@ -86,7 +85,7 @@ func (m *Meteor) Update() {
 	m.position.Y += dy
 	m.rotation += m.rotationSpeed
 
-	// Keep meteor on screen
+	// Keep meteor on screen.
 	m.keepOnScreen()
 }
 
@@ -101,6 +100,7 @@ func (m *Meteor) Draw(screen *ebiten.Image) {
 	op.GeoM.Translate(halfW, halfH)
 
 	op.GeoM.Translate(m.position.X, m.position.Y)
+
 	screen.DrawImage(m.sprite, op)
 }
 
@@ -108,15 +108,12 @@ func (m *Meteor) keepOnScreen() {
 	if m.position.X >= float64(ScreenWidth) {
 		m.position.X = 0
 	}
-
 	if m.position.X < 0 {
 		m.position.X = ScreenWidth
 	}
-
 	if m.position.Y >= float64(ScreenHeight) {
 		m.position.Y = 0
 	}
-
 	if m.position.Y < 0 {
 		m.position.Y = ScreenHeight
 	}

@@ -1,10 +1,11 @@
 package goasteroids
 
 import (
-	"go-asteroids/assets"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
+
+	"go-asteroids/assets"
 )
 
 const (
