@@ -10,7 +10,10 @@ import (
 	"go-asteroids/assets"
 )
 
-type TitleScene struct{}
+type TitleScene struct{
+	meteors map[int]*Meteor
+	meteorCount int
+}
 
 func (t *TitleScene) Draw(screen *ebiten.Image) {
 	textToDraw := "1 coin 1 play"
@@ -27,6 +30,10 @@ func (t *TitleScene) Draw(screen *ebiten.Image) {
 		Source: assets.TitleFont,
 		Size: 48,
 	}, op)
+
+	for _, m := range t.meteors {
+		m.Draw(screen)
+	}
 }
 
 
@@ -34,6 +41,16 @@ func (t *TitleScene) Update(state *State) error {
 	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
 		state.SceneManager.GoToScene(NewGameScene())
 		return nil
+	}
+
+	if len(t.meteors) < 10 {
+		m := NewMeteor(0.25, &GameScene{}, len(t.meteors)-1)
+		t.meteorCount++
+		t.meteors[t.meteorCount] = m
+	}
+
+	for _, m := range t.meteors {
+		m.Update()
 	}
 
 	return nil
