@@ -1,9 +1,11 @@
 package goasteroids
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/solarlune/resolv"
 )
 
 const (
@@ -22,6 +24,7 @@ type GameScene struct {
 	meteors          map[int]*Meteor // A map of meteors.
 	meteorsForLevel  int             // # of meteors for a level.
 	velocityTimer    *Timer          // The timer used for speeding up meteors.
+	space            *resolv.Space   // The space for all collision objects.
 }
 
 // NewGameScene is a factory method for producing a new game. It's called once,
@@ -29,13 +32,15 @@ type GameScene struct {
 func NewGameScene() *GameScene {
 	g := &GameScene{
 		meteorSpawnTimer: NewTimer(meteorSpawnTime),
-		baseVelocity: baseMeteorVelocity,
-		velocityTimer: NewTimer(meteorSpeedUpTime),
-		meteors: make(map[int]*Meteor),
-		meteorCount: 0,
-		meteorsForLevel: 2,
+		baseVelocity:     baseMeteorVelocity,
+		velocityTimer:    NewTimer(meteorSpeedUpTime),
+		meteors:          make(map[int]*Meteor),
+		meteorCount:      0,
+		meteorsForLevel:  2,
+		space:            resolv.NewSpace(ScreenWidth, ScreenHeight, 16, 16),
 	}
 	g.player = NewPlayer(g)
+	g.space.Add(g.player.playerObj)
 
 	return g
 }
@@ -51,6 +56,8 @@ func (g *GameScene) Update(state *State) error {
 	}
 
 	g.speedUpMeteors()
+
+	g.isPlayerCollidingWithMeteor()
 
 	return nil
 }
@@ -77,6 +84,7 @@ func (g *GameScene) spawnMeteors() {
 		g.meteorSpawnTimer.Reset()
 		if len(g.meteors) < g.meteorsForLevel && g.meteorCount < g.meteorsForLevel {
 			m := NewMeteor(g.baseVelocity, g, len(g.meteors)-1)
+			g.space.Add(m.meteorObj) // Adds meteors to resolv space
 			g.meteorCount++
 			g.meteors[g.meteorCount] = m
 		}
@@ -89,5 +97,14 @@ func (g *GameScene) speedUpMeteors() {
 	if g.velocityTimer.IsReady(){
 		g.velocityTimer.Reset()
 		g.baseVelocity += meteorSpeedUpAmount
+	}
+}
+
+func (g *GameScene) isPlayerCollidingWithMeteor() {
+	for _, m := range g.meteors {
+		if m.meteorObj.IsIntersecting(g.player.playerObj) {
+			data := m.meteorObj.Data().(*ObjectData)
+			fmt.Println("player collided with meteor", data.index)
+		}
 	}
 }
