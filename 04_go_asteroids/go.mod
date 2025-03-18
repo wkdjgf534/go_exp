@@ -4,7 +4,7 @@ go 1.23.6
 
 require (
 	github.com/hajimehoshi/ebiten/v2 v2.8.6
-	golang.org/x/text v0.18.0
+	github.com/solarlune/resolv v0.8.1
 )
 
 require (
@@ -16,4 +16,5 @@ require (
 	golang.org/x/image v0.20.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/sys v0.25.0 // indirect
+	golang.org/x/text v0.18.0 // indirect
 )
