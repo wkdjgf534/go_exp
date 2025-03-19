@@ -74,5 +74,7 @@ func (l *Laser) Draw(screen *ebiten.Image) {
 	op.GeoM.Rotate(l.rotation)
 	op.GeoM.Translate(halfW, halfH)
 
+	op.GeoM.Translate(l.position.X, l.position.Y)
+
 	screen.DrawImage(l.sprite, op)
 }

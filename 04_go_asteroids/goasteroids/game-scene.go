@@ -25,6 +25,8 @@ type GameScene struct {
 	meteorsForLevel  int             // # of meteors for a level.
 	velocityTimer    *Timer          // The timer used for speeding up meteors.
 	space            *resolv.Space   // The space for all collision objects.
+	lasers           map[int]*Laser  //
+	laserCount       int             //
 }
 
 // NewGameScene is a factory method for producing a new game. It's called once,
@@ -38,6 +40,8 @@ func NewGameScene() *GameScene {
 		meteorCount:      0,
 		meteorsForLevel:  2,
 		space:            resolv.NewSpace(ScreenWidth, ScreenHeight, 16, 16),
+		lasers:           make(map[int]*Laser),
+		laserCount:       0,
 	}
 	g.player = NewPlayer(g)
 	g.space.Add(g.player.playerObj)
@@ -55,6 +59,10 @@ func (g *GameScene) Update(state *State) error {
 		m.Update()
 	}
 
+	for _, l := range g.lasers {
+		l.Update()
+	}
+
 	g.speedUpMeteors()
 
 	g.isPlayerCollidingWithMeteor()
@@ -69,6 +77,11 @@ func (g *GameScene) Draw(screen *ebiten.Image) {
 	// Draw meteors.
 	for _, m := range g.meteors {
 		m.Draw(screen)
+	}
+
+	// Draw lasers.
+	for _, l := range g.lasers {
+		l.Draw(screen)
 	}
 }
 
