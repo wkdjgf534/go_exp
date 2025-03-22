@@ -2,49 +2,63 @@ package goasteroids
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/solarlune/resolv"
+
+	"go-asteroids/assets"
 )
 
 const (
-	baseMeteorVelocity  = 0.25                    // The base speed for meteors.
-	meteorSpawnTime     = 100 * time.Millisecond  // How long before meteors spawn.
-	meteorSpeedUpAmount = 0.1                     // How much do we speed a meteor up when it's timer runs out.
-	meteorSpeedUpTime   = 1000 * time.Millisecond // How long to wait to speed up meteors.
+	baseMeteorVelocity   = 0.25                    // The base speed for meteors.
+	meteorSpawnTime      = 100 * time.Millisecond  // How long before meteors spawn.
+	meteorSpeedUpAmount  = 0.1                     // How much do we speed a meteor up when it's timer runs out.
+	meteorSpeedUpTime    = 1000 * time.Millisecond // How long to wait to speed up meteors.
+	cleanUpExplosionTime = 500 * time.Millisecond
 )
 
 // GameScene is the overall type for a game scene (e.g. TitleScene, GameScene, etc.).
 type GameScene struct {
-	player           *Player
-	baseVelocity     float64         // The base velocity for items in the game.
-	meteorCount      int             // The counter for meteors.
-	meteorSpawnTimer *Timer          // The timer for spawning meteors.
-	meteors          map[int]*Meteor // A map of meteors.
-	meteorsForLevel  int             // # of meteors for a level.
-	velocityTimer    *Timer          // The timer used for speeding up meteors.
-	space            *resolv.Space   // The space for all collision objects.
-	lasers           map[int]*Laser  //
-	laserCount       int             //
+	player              *Player
+	baseVelocity        float64         // The base velocity for items in the game.
+	meteorCount         int             // The counter for meteors.
+	meteorSpawnTimer     *Timer          // The timer for spawning meteors.
+	meteors              map[int]*Meteor // A map of meteors.
+	meteorsForLevel      int             // # of meteors for a level.
+	velocityTimer        *Timer          // The timer used for speeding up meteors.
+	space                *resolv.Space   // The space for all collision objects.
+	lasers               map[int]*Laser  //
+	laserCount           int             //
+	score                int             //
+	explosionSmallSprite *ebiten.Image   //
+	explosionSprite      *ebiten.Image   //
+	explosionFrames      []*ebiten.Image //
+	cleanUpTimer         *Timer          //
 }
 
 // NewGameScene is a factory method for producing a new game. It's called once,
 // when game play starts (and again when game play restarts).
 func NewGameScene() *GameScene {
 	g := &GameScene{
-		meteorSpawnTimer: NewTimer(meteorSpawnTime),
-		baseVelocity:     baseMeteorVelocity,
-		velocityTimer:    NewTimer(meteorSpeedUpTime),
-		meteors:          make(map[int]*Meteor),
-		meteorCount:      0,
-		meteorsForLevel:  2,
-		space:            resolv.NewSpace(ScreenWidth, ScreenHeight, 16, 16),
-		lasers:           make(map[int]*Laser),
-		laserCount:       0,
+		meteorSpawnTimer:     NewTimer(meteorSpawnTime),
+		baseVelocity:         baseMeteorVelocity,
+		velocityTimer:        NewTimer(meteorSpeedUpTime),
+		meteors:              make(map[int]*Meteor),
+		meteorCount:          0,
+		meteorsForLevel:      2,
+		space:                resolv.NewSpace(ScreenWidth, ScreenHeight, 16, 16),
+		lasers:               make(map[int]*Laser),
+		laserCount:           0,
+		explosionSprite:      assets.ExplosionSprite,
+		explosionSmallSprite: assets.ExplosionSmallSprite,
+		cleanUpTimer:         NewTimer(cleanUpExplosionTime),
 	}
 	g.player = NewPlayer(g)
 	g.space.Add(g.player.playerObj)
+
+	g.explosionFrames = assets.Explosion
 
 	return g
 }
@@ -67,6 +81,10 @@ func (g *GameScene) Update(state *State) error {
 
 	g.isPlayerCollidingWithMeteor()
 
+    g.isMeteorHitByPlayerLaser()
+
+	g.cleanUpMeteorsAndAliens()
+
 	return nil
 }
 
@@ -88,6 +106,42 @@ func (g *GameScene) Draw(screen *ebiten.Image) {
 // Layout is necessary to satisfy interface requirements from ebiten.
 func (g *GameScene) Layout(outsideWidth, outsideHeight int) (ScreenWidth, ScreenHeight int) {
 	return outsideWidth, outsideHeight
+}
+
+//
+func (g *GameScene) isMeteorHitByPlayerLaser() {
+	for _, m := range g.meteors {
+		for _, l := range g.lasers{
+			if m.meteorObj.IsIntersecting(l.laserObj) {
+				if m.meteorObj.Tags().Has(TagSmall) {
+					// Small meteor
+					m.sprite = g.explosionSmallSprite
+					g.score++
+				} else {
+					// Large meteor
+					// Gets the position durring the hit
+					oldPos := m.position
+
+					m.sprite = g.explosionSprite
+					g.score++
+
+					numToSpawn := rand.Intn(numberOfSmallMeteorsFromLargeMeteor)
+					for i := 0; i < numToSpawn; i++ {
+						meteor := NewSmallMeteor(baseMeteorVelocity, g, len(m.game.meteors) - 1)
+						meteor.position = Vector{
+							oldPos.X + float64(rand.Intn(100-50) + 50),
+							oldPos.Y + float64(rand.Intn(100-50) + 50),
+						}
+
+						meteor.meteorObj.SetPosition(meteor.position.X, meteor.position.Y)
+						g.space.Add(meteor.meteorObj)
+						g.meteorCount++
+						g.meteors[m.game.meteorCount] = meteor
+					}
+				}
+			}
+		}
+	}
 }
 
 // spawnMeteors creates meteors, up to the maximum for a level.
@@ -119,5 +173,19 @@ func (g *GameScene) isPlayerCollidingWithMeteor() {
 			data := m.meteorObj.Data().(*ObjectData)
 			fmt.Println("player collided with meteor", data.index)
 		}
+	}
+}
+
+func (g *GameScene) cleanUpMeteorsAndAliens() {
+	g.cleanUpTimer.Update()
+	if g.cleanUpTimer.IsReady() {
+		for i, m := range g.meteors {
+			if m.sprite == g.explosionSprite || m.sprite == g.explosionSmallSprite {
+				delete(g.meteors, i)
+				g.space.Remove(m.meteorObj)
+			}
+		}
+
+		g.cleanUpTimer.Reset()
 	}
 }
