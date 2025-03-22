@@ -1,7 +1,6 @@
 package goasteroids
 
 import (
-	"fmt"
 	"math/rand"
 	"time"
 
@@ -36,6 +35,7 @@ type GameScene struct {
 	explosionSprite      *ebiten.Image   //
 	explosionFrames      []*ebiten.Image //
 	cleanUpTimer         *Timer          //
+	playerIsDead         bool            //
 }
 
 // NewGameScene is a factory method for producing a new game. It's called once,
@@ -66,6 +66,10 @@ func NewGameScene() *GameScene {
 // Update updates all game scene elements for the next draw. It's called once per tick.
 func (g *GameScene) Update(state *State) error {
 	g.player.Update()
+
+	g.isPlayerDying()
+
+	g.isPlayerDead(state)
 
 	g.spawnMeteors()
 
@@ -144,6 +148,34 @@ func (g *GameScene) isMeteorHitByPlayerLaser() {
 	}
 }
 
+func (g *GameScene) isPlayerDying() {
+	if g.player.isDying {
+		g.player.dyingTimer.Update()
+
+		if g.player.dyingTimer.IsReady() {
+			g.player.dyingTimer.Reset()
+			g.player.dyingCounter++
+			if g.player.dyingCounter == 12 {
+				g.player.isDying = false
+				g.player.isDead = true
+			} else if g.player.dyingCounter < 12 {
+				g.player.sprite = g.explosionFrames[g.player.dyingCounter]
+			} else {
+				// Do nothing.
+			}
+		}
+	}
+}
+
+func (g *GameScene) isPlayerDead(state *State) {
+	if g.playerIsDead {
+		g.player.livesRemaining--
+		if g.player.livesRemaining == 0 {
+			state.SceneManager.GoToScene(NewGameScene())
+		}
+	}
+}
+
 // spawnMeteors creates meteors, up to the maximum for a level.
 func (g *GameScene) spawnMeteors() {
 	g.meteorSpawnTimer.Update()
@@ -170,8 +202,12 @@ func (g *GameScene) speedUpMeteors() {
 func (g *GameScene) isPlayerCollidingWithMeteor() {
 	for _, m := range g.meteors {
 		if m.meteorObj.IsIntersecting(g.player.playerObj) {
-			data := m.meteorObj.Data().(*ObjectData)
-			fmt.Println("player collided with meteor", data.index)
+			if !g.player.isShielded {
+				m.game.player.isDying = true
+				break
+			} else {
+				// Bounce the meteor
+			}
 		}
 	}
 }
