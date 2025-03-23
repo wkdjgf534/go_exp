@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/audio"
 	"github.com/solarlune/resolv"
 
 	"go-asteroids/assets"
@@ -36,6 +37,8 @@ type GameScene struct {
 	explosionFrames      []*ebiten.Image //
 	cleanUpTimer         *Timer          //
 	playerIsDead         bool            //
+	audioContex          *audio.Context  //
+	thrustPlayer         *audio.Player   //
 }
 
 // NewGameScene is a factory method for producing a new game. It's called once,
@@ -59,6 +62,11 @@ func NewGameScene() *GameScene {
 	g.space.Add(g.player.playerObj)
 
 	g.explosionFrames = assets.Explosion
+
+	// Load audio
+	g.audioContex = audio.NewContext(48000)
+	thrustPlayer, _ := g.audioContex.NewPlayer(assets.ThrustSound)
+	g.thrustPlayer = thrustPlayer
 
 	return g
 }
