@@ -39,6 +39,7 @@ type GameScene struct {
 	playerIsDead         bool            //
 	audioContex          *audio.Context  //
 	thrustPlayer         *audio.Player   //
+	exhaust              *Exhaust        //
 }
 
 // NewGameScene is a factory method for producing a new game. It's called once,
@@ -75,6 +76,8 @@ func NewGameScene() *GameScene {
 func (g *GameScene) Update(state *State) error {
 	g.player.Update()
 
+	g.updateExhaust()
+
 	g.isPlayerDying()
 
 	g.isPlayerDead(state)
@@ -102,7 +105,13 @@ func (g *GameScene) Update(state *State) error {
 
 // Draw draws all game scene elements to the screen. It's called once per frame.
 func (g *GameScene) Draw(screen *ebiten.Image) {
+	// Draw player.
 	g.player.Draw(screen)
+
+	// Draw exhaust.
+	if g.exhaust != nil {
+		g.exhaust.Draw(screen)
+	}
 
 	// Draw meteors.
 	for _, m := range g.meteors {
@@ -120,7 +129,12 @@ func (g *GameScene) Layout(outsideWidth, outsideHeight int) (ScreenWidth, Screen
 	return outsideWidth, outsideHeight
 }
 
-//
+func (g *GameScene) updateExhaust() {
+	if g.exhaust != nil {
+		g.exhaust.Update()
+	}
+}
+
 func (g *GameScene) isMeteorHitByPlayerLaser() {
 	for _, m := range g.meteors {
 		for _, l := range g.lasers{
@@ -179,7 +193,8 @@ func (g *GameScene) isPlayerDead(state *State) {
 	if g.playerIsDead {
 		g.player.livesRemaining--
 		if g.player.livesRemaining == 0 {
-			state.SceneManager.GoToScene(NewGameScene())
+			g.Reset()
+			state.SceneManager.GoToScene(g)
 		}
 	}
 }
@@ -232,4 +247,20 @@ func (g *GameScene) cleanUpMeteorsAndAliens() {
 
 		g.cleanUpTimer.Reset()
 	}
+}
+
+func (g *GameScene) Reset() {
+	g.player = NewPlayer(g)
+	g.meteors = make(map[int]*Meteor)
+	g.meteorCount = 0
+	g.lasers = make(map[int]*Laser)
+	g.laserCount = 0
+	g.score = 0
+	g.meteorSpawnTimer.Reset()
+	g.baseVelocity = baseMeteorVelocity
+	g.velocityTimer.Reset()
+	g.playerIsDead = false
+	g.exhaust = nil
+	g.space.RemoveAll()
+	g.space.Add(g.player.playerObj)
 }

@@ -1,6 +1,6 @@
 module go-asteroids
 
-go 1.23.6
+go 1.24.1
 
 require (
 	github.com/hajimehoshi/ebiten/v2 v2.8.6
