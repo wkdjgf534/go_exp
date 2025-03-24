@@ -43,6 +43,7 @@ type GameScene struct {
 	laserOnePlayer       *audio.Player   //
 	laserTwoPlayer       *audio.Player   //
 	laserThreePlayer     *audio.Player   //
+	explosionPlayer      *audio.Player   // The explosion sound player.
 }
 
 // NewGameScene is a factory method for producing a new game. It's called once,
@@ -80,6 +81,9 @@ func NewGameScene() *GameScene {
 
 	laserThreePlayer, _ := g.audioContex.NewPlayer(assets.LaserThreeSound)
 	g.laserThreePlayer = laserThreePlayer
+
+	explosionPlayer, _ := g.audioContex.NewPlayer(assets.ExplosionSound)
+	g.explosionPlayer = explosionPlayer
 
 	return g
 }
@@ -155,6 +159,11 @@ func (g *GameScene) isMeteorHitByPlayerLaser() {
 					// Small meteor
 					m.sprite = g.explosionSmallSprite
 					g.score++
+
+					if !g.explosionPlayer.IsPlaying() {
+						_ = g.explosionPlayer.Rewind()
+						g.explosionPlayer.Play()
+					}
 				} else {
 					// Large meteor
 					// Gets the position durring the hit
@@ -162,6 +171,11 @@ func (g *GameScene) isMeteorHitByPlayerLaser() {
 
 					m.sprite = g.explosionSprite
 					g.score++
+
+					if !g.explosionPlayer.IsPlaying() {
+						_ = g.explosionPlayer.Rewind()
+						g.explosionPlayer.Play()
+					}
 
 					numToSpawn := rand.Intn(numberOfSmallMeteorsFromLargeMeteor)
 					for i := 0; i < numToSpawn; i++ {
@@ -239,6 +253,11 @@ func (g *GameScene) isPlayerCollidingWithMeteor() {
 		if m.meteorObj.IsIntersecting(g.player.playerObj) {
 			if !g.player.isShielded {
 				m.game.player.isDying = true
+
+				if !g.explosionPlayer.IsPlaying() {
+					_ = g.explosionPlayer.Rewind()
+					g.explosionPlayer.Play()
+				}
 				break
 			} else {
 				// Bounce the meteor
