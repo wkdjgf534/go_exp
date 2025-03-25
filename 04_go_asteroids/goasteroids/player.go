@@ -24,15 +24,15 @@ const (
 )
 
 var (
-	curAcceleration float64
-	shotsFired     = 0
+	curAcceleration float64 // We use this to gradually increase acceleration.
+	shotsFired     = 0      // A counter to keep track of max shots per burst.
 )
 
 type Player struct {
-	game           *GameScene
-	sprite         *ebiten.Image
-	rotation       float64
-	position       Vector
+	game           *GameScene     // The current game scene.
+	sprite         *ebiten.Image  // The player's sprite.
+	rotation       float64        // The current player's rotation.
+	position       Vector         // Where is the player on the screen.
 	playerVelocity float64
 	playerObj      *resolv.Circle
 	shootCoolDown  *Timer
