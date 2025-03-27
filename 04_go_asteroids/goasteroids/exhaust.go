@@ -8,14 +8,16 @@ import (
 	"go-asteroids/assets"
 )
 
-const exhaustSpawnOffset = -50
+const exhaustSpawnOffset = -50 // How far from the player sprite the exhaust should appear.
 
+// Exhaust is the type for exhaust.
 type Exhaust struct {
 	position Vector
 	rotation float64
 	sprite *ebiten.Image
 }
 
+// NewExhaust creates a new exhaust object.
 func NewExhaust(pos Vector, rotation float64) *Exhaust {
 	sprite := assets.ExhaustSprite
 

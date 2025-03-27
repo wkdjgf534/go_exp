@@ -24,15 +24,15 @@ const (
 )
 
 var (
-	curAcceleration float64
-	shotsFired     = 0
+	curAcceleration float64 // We use this to gradually increase acceleration.
+	shotsFired     = 0      // A counter to keep track of max shots per burst.
 )
 
 type Player struct {
-	game           *GameScene
-	sprite         *ebiten.Image
-	rotation       float64
-	position       Vector
+	game           *GameScene     // The current game scene.
+	sprite         *ebiten.Image  // The player's sprite.
+	rotation       float64        // The current player's rotation.
+	position       Vector         // Where is the player on the screen.
 	playerVelocity float64
 	playerObj      *resolv.Circle
 	shootCoolDown  *Timer
@@ -152,6 +152,24 @@ func (p *Player) fireLasers() {
 				laser := NewLaser(spawnPos, p.rotation, p.game.laserCount, p.game)
 				p.game.lasers[p.game.laserCount] = laser
 				p.game.space.Add(laser.laserObj)
+
+				switch shotsFired {
+				case 1:
+					if !p.game.laserOnePlayer.IsPlaying() {
+						_ = p.game.laserOnePlayer.Rewind()
+						p.game.laserOnePlayer.Play()
+					}
+				case 2:
+					if !p.game.laserTwoPlayer.IsPlaying() {
+						_ = p.game.laserTwoPlayer.Rewind()
+						p.game.laserTwoPlayer.Play()
+					}
+				case 3:
+					if !p.game.laserThreePlayer.IsPlaying() {
+						_ = p.game.laserThreePlayer.Rewind()
+						p.game.laserThreePlayer.Play()
+					}
+				}
 			} else {
 				p.burstCoolDown.Reset()
 				shotsFired = 0
