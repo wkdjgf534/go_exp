@@ -52,6 +52,7 @@ type GameScene struct {
 	beatWaitTime         int             //
 	playBeatOne          bool            //
 	playBeatTwo          bool            //
+	stars                []*Star         // The stars fr background.
 }
 
 // NewGameScene is a factory method for producing a new game. It's called once,
@@ -75,6 +76,7 @@ func NewGameScene() *GameScene {
 	}
 	g.player = NewPlayer(g)
 	g.space.Add(g.player.playerObj)
+	g.stars = GenerateStars(numberOfStars)
 
 	g.explosionFrames = assets.Explosion
 
@@ -139,6 +141,11 @@ func (g *GameScene) Update(state *State) error {
 
 // Draw draws all game scene elements to the screen. It's called once per frame.
 func (g *GameScene) Draw(screen *ebiten.Image) {
+	// Draw stars.
+	for _, s :=range g.stars {
+		s.Draw(screen)
+	}
+
 	// Draw player.
 	g.player.Draw(screen)
 
@@ -335,4 +342,5 @@ func (g *GameScene) Reset() {
 	g.exhaust = nil
 	g.space.RemoveAll()
 	g.space.Add(g.player.playerObj)
+	g.stars = GenerateStars(numberOfStars)
 }

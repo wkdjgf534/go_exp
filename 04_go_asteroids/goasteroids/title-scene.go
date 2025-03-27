@@ -17,6 +17,11 @@ type TitleScene struct {
 }
 
 func (t *TitleScene) Draw(screen *ebiten.Image) {
+	// Draw stars.
+	for _, s := range t.stars {
+		s.Draw(screen)
+	}
+
 	textToDraw := "1 coin 1 play"
 
 	op := &text.DrawOptions{
@@ -33,11 +38,6 @@ func (t *TitleScene) Draw(screen *ebiten.Image) {
 
 	for _, m := range t.meteors {
 		m.Draw(screen)
-	}
-
-	// Draw stars.
-	for _, s := range t.stars {
-		s.Draw(screen)
 	}
 }
 
