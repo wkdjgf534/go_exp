@@ -13,6 +13,7 @@ import (
 type TitleScene struct {
 	meteors     map[int]*Meteor
 	meteorCount int
+	stars       []*Star
 }
 
 func (t *TitleScene) Draw(screen *ebiten.Image) {
@@ -32,6 +33,11 @@ func (t *TitleScene) Draw(screen *ebiten.Image) {
 
 	for _, m := range t.meteors {
 		m.Draw(screen)
+	}
+
+	// Draw stars.
+	for _, s := range t.stars {
+		s.Draw(screen)
 	}
 }
 

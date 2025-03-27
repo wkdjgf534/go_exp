@@ -18,6 +18,7 @@ const (
 	meteorSpeedUpTime    = 1000 * time.Millisecond // How long to wait to speed up meteors.
 	cleanUpExplosionTime = 500 * time.Millisecond
 	baseBeatWaitTime     = 1600
+	numberOfStars        = 1000
 )
 
 // GameScene is the overall type for a game scene (e.g. TitleScene, GameScene, etc.).
