@@ -16,6 +16,11 @@ type TitleScene struct {
 	stars       []*Star
 }
 
+var (
+	highScore int
+	originalHighScore int
+)
+
 func (t *TitleScene) Draw(screen *ebiten.Image) {
 	// Draw stars.
 	for _, s := range t.stars {
