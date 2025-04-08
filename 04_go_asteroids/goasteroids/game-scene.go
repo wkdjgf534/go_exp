@@ -16,9 +16,9 @@ const (
 	meteorSpawnTime      = 100 * time.Millisecond  // How long before meteors spawn.
 	meteorSpeedUpAmount  = 0.1                     // How much do we speed a meteor up when it's timer runs out.
 	meteorSpeedUpTime    = 1000 * time.Millisecond // How long to wait to speed up meteors.
-	cleanUpExplosionTime = 500 * time.Millisecond
-	baseBeatWaitTime     = 1600
-	numberOfStars        = 1000
+	cleanUpExplosionTime = 500 * time.Millisecond  // The time to wait for cleaning up explosions.
+	baseBeatWaitTime     = 1600                    // Base number of milliseconds to wait between beats of background. This is an int because we do math on it.
+	numberOfStars        = 1000                    // The number of stars to display on the background.
 )
 
 // GameScene is the overall type for a game scene (e.g. TitleScene, GameScene, etc.).
@@ -46,11 +46,11 @@ type GameScene struct {
 	laserTwoPlayer       *audio.Player
 	laserThreePlayer     *audio.Player
 	explosionPlayer      *audio.Player   // The explosion sound player.
-	beatOnePlayer        *audio.Player   //
-	beatTwoPlayer        *audio.Player
-	beatTimer            *Timer          //
-	beatWaitTime         int             //
-	playBeatOne          bool            //
+	beatOnePlayer        *audio.Player   // The audio player for beat one (background sounds).
+	beatTwoPlayer        *audio.Player   // The audio player for beat two sound (background sounds).
+	beatTimer            *Timer          // The time for playing beats one and two.
+	beatWaitTime         int             // The time to wait between beats. Reduced over time in each level.
+	playBeatOne          bool            // Should we play beat one? Yes, if true, otherwise play beat two.
 	playBeatTwo          bool            //
 	stars                []*Star         // The stars fr background.
 }
