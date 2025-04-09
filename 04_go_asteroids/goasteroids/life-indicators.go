@@ -2,7 +2,6 @@ package goasteroids
 
 import (
 	"go-asteroids/assets"
-	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/colorm"
@@ -11,7 +10,7 @@ import (
 type LifeIndicator struct {
 	position Vector
 	rotation float64
-	sprite *ebiten.Image
+	sprite   *ebiten.Image
 }
 
 func NewLifeIndicator(pos Vector) *LifeIndicator {
@@ -19,7 +18,7 @@ func NewLifeIndicator(pos Vector) *LifeIndicator {
 
 	return &LifeIndicator{
 		position: pos,
-		sprite: sprite,
+		sprite:   sprite,
 	}
 }
 

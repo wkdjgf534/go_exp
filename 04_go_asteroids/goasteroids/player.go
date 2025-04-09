@@ -21,18 +21,19 @@ const (
 	laserSpawnOffSet     = 50.0
 	maxShotsPerBurts     = 3
 	dyingAnimationAmount = 50 * time.Millisecond
+	numberOfLives        = 3
 )
 
 var (
 	curAcceleration float64 // We use this to gradually increase acceleration.
-	shotsFired     = 0      // A counter to keep track of max shots per burst.
+	shotsFired      = 0     // A counter to keep track of max shots per burst.
 )
 
 type Player struct {
-	game           *GameScene     // The current game scene.
-	sprite         *ebiten.Image  // The player's sprite.
-	rotation       float64        // The current player's rotation.
-	position       Vector         // Where is the player on the screen.
+	game           *GameScene    // The current game scene.
+	sprite         *ebiten.Image // The player's sprite.
+	rotation       float64       // The current player's rotation.
+	position       Vector        // Where is the player on the screen.
 	playerVelocity float64
 	playerObj      *resolv.Circle
 	shootCoolDown  *Timer
@@ -43,6 +44,7 @@ type Player struct {
 	dyingTimer     *Timer
 	dyingCounter   int
 	livesRemaining int
+	lifeIndicators []*LifeIndicator
 }
 
 func NewPlayer(game *GameScene) *Player {
@@ -61,19 +63,29 @@ func NewPlayer(game *GameScene) *Player {
 	// Create a resolv object.
 	playerObj := resolv.NewCircle(pos.X, pos.Y, float64(sprite.Bounds().Dx()/2))
 
+	var lifeIndicators []*LifeIndicator
+	var xPosition = 20.0
+
+	for i := 0; i < numberOfLives; i++ {
+		li := NewLifeIndicator(Vector{X: xPosition, Y: 20})
+		lifeIndicators = append(lifeIndicators, li)
+		xPosition += 50.0
+	}
+
 	p := &Player{
-		sprite:   sprite,
-		game:     game,
-		position: pos,
-		playerObj: playerObj,
-		shootCoolDown: NewTimer(shootCoolDown),
-		burstCoolDown: NewTimer(burstCoolDown),
-		isShielded: false,
-		isDying: false,
-		isDead: false,
-		dyingTimer: NewTimer(dyingAnimationAmount),
-		dyingCounter: 0,
-		livesRemaining: 1,
+		sprite:         sprite,
+		game:           game,
+		position:       pos,
+		playerObj:      playerObj,
+		shootCoolDown:  NewTimer(shootCoolDown),
+		burstCoolDown:  NewTimer(burstCoolDown),
+		isShielded:     false,
+		isDying:        false,
+		isDead:         false,
+		dyingTimer:     NewTimer(dyingAnimationAmount),
+		dyingCounter:   0,
+		livesRemaining: numberOfLives,
+		lifeIndicators: lifeIndicators,
 	}
 
 	p.playerObj.SetPosition(pos.X, pos.Y)
@@ -127,7 +139,7 @@ func (p *Player) Update() {
 	p.fireLasers()
 }
 
-func(p *Player) isPlayerDead() {
+func (p *Player) isPlayerDead() {
 	if p.isDead {
 		p.game.playerIsDead = true
 	}
@@ -143,7 +155,7 @@ func (p *Player) fireLasers() {
 				halfW := float64(bounds.Dx()) / 2
 				halfH := float64(bounds.Dy()) / 2
 
-				spawnPos := Vector {
+				spawnPos := Vector{
 					p.position.X + halfW + math.Sin(p.rotation)*laserSpawnOffSet,
 					p.position.Y + halfH + math.Cos(p.rotation)*-laserSpawnOffSet,
 				}
@@ -202,9 +214,9 @@ func (p *Player) accelerate() {
 		halfH := float64(bounds.Dy()) / 2
 
 		// Where to spawn exhaust?
-		spawnPos := Vector {
-			p.position.X + halfW + math.Sin(p.rotation) * exhaustSpawnOffset,
-			p.position.Y + halfH + math.Cos(p.rotation) * -exhaustSpawnOffset,
+		spawnPos := Vector{
+			p.position.X + halfW + math.Sin(p.rotation)*exhaustSpawnOffset,
+			p.position.Y + halfH + math.Cos(p.rotation)*-exhaustSpawnOffset,
 		}
 
 		p.game.exhaust = NewExhaust(spawnPos, p.rotation+180.0*math.Pi/180.0)
@@ -240,8 +252,8 @@ func (p *Player) reverse() {
 		halfH := float64(bounds.Dy()) / 2
 
 		spawnPos := Vector{
-			p.position.X + halfW + math.Sin(p.rotation) * -exhaustSpawnOffset,
-			p.position.Y + halfH + math.Cos(p.rotation) * exhaustSpawnOffset,
+			p.position.X + halfW + math.Sin(p.rotation)*-exhaustSpawnOffset,
+			p.position.Y + halfH + math.Cos(p.rotation)*exhaustSpawnOffset,
 		}
 
 		p.game.exhaust = NewExhaust(spawnPos, p.rotation+180.0*math.Pi/180.0)

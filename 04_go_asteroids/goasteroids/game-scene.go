@@ -23,9 +23,9 @@ const (
 
 // GameScene is the overall type for a game scene (e.g. TitleScene, GameScene, etc.).
 type GameScene struct {
-	player              *Player
-	baseVelocity        float64          // The base velocity for items in the game.
-	meteorCount         int              // The counter for meteors.
+	player               *Player
+	baseVelocity         float64         // The base velocity for items in the game.
+	meteorCount          int             // The counter for meteors.
 	meteorSpawnTimer     *Timer          // The timer for spawning meteors.
 	meteors              map[int]*Meteor // A map of meteors.
 	meteorsForLevel      int             // # of meteors for a level.
@@ -45,14 +45,14 @@ type GameScene struct {
 	laserOnePlayer       *audio.Player   // The audio player for laser.
 	laserTwoPlayer       *audio.Player
 	laserThreePlayer     *audio.Player
-	explosionPlayer      *audio.Player   // The explosion sound player.
-	beatOnePlayer        *audio.Player   // The audio player for beat one (background sounds).
-	beatTwoPlayer        *audio.Player   // The audio player for beat two sound (background sounds).
-	beatTimer            *Timer          // The time for playing beats one and two.
-	beatWaitTime         int             // The time to wait between beats. Reduced over time in each level.
-	playBeatOne          bool            // Should we play beat one? Yes, if true, otherwise play beat two.
-	playBeatTwo          bool            //
-	stars                []*Star         // The stars fr background.
+	explosionPlayer      *audio.Player // The explosion sound player.
+	beatOnePlayer        *audio.Player // The audio player for beat one (background sounds).
+	beatTwoPlayer        *audio.Player // The audio player for beat two sound (background sounds).
+	beatTimer            *Timer        // The time for playing beats one and two.
+	beatWaitTime         int           // The time to wait between beats. Reduced over time in each level.
+	playBeatOne          bool          // Should we play beat one? Yes, if true, otherwise play beat two.
+	playBeatTwo          bool          //
+	stars                []*Star       // The stars fr background.
 }
 
 // NewGameScene is a factory method for producing a new game. It's called once,
@@ -130,7 +130,7 @@ func (g *GameScene) Update(state *State) error {
 
 	g.isPlayerCollidingWithMeteor()
 
-    g.isMeteorHitByPlayerLaser()
+	g.isMeteorHitByPlayerLaser()
 
 	g.cleanUpMeteorsAndAliens()
 
@@ -142,7 +142,7 @@ func (g *GameScene) Update(state *State) error {
 // Draw draws all game scene elements to the screen. It's called once per frame.
 func (g *GameScene) Draw(screen *ebiten.Image) {
 	// Draw stars.
-	for _, s :=range g.stars {
+	for _, s := range g.stars {
 		s.Draw(screen)
 	}
 
@@ -162,6 +162,13 @@ func (g *GameScene) Draw(screen *ebiten.Image) {
 	// Draw lasers.
 	for _, l := range g.lasers {
 		l.Draw(screen)
+	}
+
+	// Draw life indicators.
+	if len(g.player.lifeIndicators) > 0 {
+		for _, x := range g.player.lifeIndicators {
+			x.Draw(screen)
+		}
 	}
 }
 
@@ -201,7 +208,7 @@ func (g *GameScene) updateExhaust() {
 
 func (g *GameScene) isMeteorHitByPlayerLaser() {
 	for _, m := range g.meteors {
-		for _, l := range g.lasers{
+		for _, l := range g.lasers {
 			if m.meteorObj.IsIntersecting(l.laserObj) {
 				if m.meteorObj.Tags().Has(TagSmall) {
 					// Small meteor
@@ -227,10 +234,10 @@ func (g *GameScene) isMeteorHitByPlayerLaser() {
 
 					numToSpawn := rand.Intn(numberOfSmallMeteorsFromLargeMeteor)
 					for i := 0; i < numToSpawn; i++ {
-						meteor := NewSmallMeteor(baseMeteorVelocity, g, len(m.game.meteors) - 1)
+						meteor := NewSmallMeteor(baseMeteorVelocity, g, len(m.game.meteors)-1)
 						meteor.position = Vector{
-							oldPos.X + float64(rand.Intn(100-50) + 50),
-							oldPos.Y + float64(rand.Intn(100-50) + 50),
+							oldPos.X + float64(rand.Intn(100-50)+50),
+							oldPos.Y + float64(rand.Intn(100-50)+50),
 						}
 
 						meteor.meteorObj.SetPosition(meteor.position.X, meteor.position.Y)
@@ -268,11 +275,19 @@ func (g *GameScene) isPlayerDead(state *State) {
 		g.player.livesRemaining--
 		if g.player.livesRemaining == 0 {
 			state.SceneManager.GoToScene(&GameOverScene{
-				game: g,
-				meteors: make(map[int]*Meteor),
+				game:        g,
+				meteors:     make(map[int]*Meteor),
 				meteorCount: 5,
-				stars: GenerateStars(numberOfStars),
+				stars:       GenerateStars(numberOfStars),
 			})
+		} else {
+			score := g.score
+			livesRemaining := g.player.livesRemaining
+			lifeSlice := g.player.lifeIndicators[:len(g.player.lifeIndicators)-1]
+			g.Reset()
+			g.player.livesRemaining = livesRemaining
+			g.score = score
+			g.player.lifeIndicators = lifeSlice
 		}
 	}
 }
@@ -294,7 +309,7 @@ func (g *GameScene) spawnMeteors() {
 // speedUpMeteors makes meteors move faster over time.
 func (g *GameScene) speedUpMeteors() {
 	g.velocityTimer.Update()
-	if g.velocityTimer.IsReady(){
+	if g.velocityTimer.IsReady() {
 		g.velocityTimer.Reset()
 		g.baseVelocity += meteorSpeedUpAmount
 	}
