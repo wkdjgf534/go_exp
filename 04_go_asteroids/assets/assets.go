@@ -18,12 +18,14 @@ var assets embed.FS
 
 var PlayerSprite = mustLoadImage("images/player.png")
 var TitleFont = mustLoadFontFace("fonts/title.ttf")
+var ScoreFont = mustLoadFontFace("fonts/score.ttf")
+var LevelFont = mustLoadFontFace("fonts/score.ttf")
 var MeteorSprites = mustLoadImages("images/meteors/*.png")
 var MeteorSpritesSmall = mustLoadImages("images/meteors-small/*.png")
 var LaserSprite = mustLoadImage("images/laser.png")
 var ExplosionSprite = mustLoadImage("images/explosion.png")
 var ExplosionSmallSprite = mustLoadImage("images/explosion-small.png")
-var Explosion =	createExplosion()
+var Explosion = createExplosion()
 var ThrustSound = mustLoadOggVorbis("audio/thrust.ogg")
 var ExhaustSprite = mustLoadImage("images/fire.png")
 var LaserOneSound = mustLoadOggVorbis("audio/fire.ogg")
@@ -51,7 +53,7 @@ func mustLoadOggVorbis(name string) *vorbis.Stream {
 func createExplosion() []*ebiten.Image {
 	var frames []*ebiten.Image
 	for i := 0; i <= 11; i++ {
-		frame := mustLoadImage(fmt.Sprintf("images/explosion/%d.png", i+1 ))
+		frame := mustLoadImage(fmt.Sprintf("images/explosion/%d.png", i+1))
 		frames = append(frames, frame)
 	}
 

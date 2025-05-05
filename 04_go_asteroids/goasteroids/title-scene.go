@@ -1,6 +1,7 @@
 package goasteroids
 
 import (
+	"fmt"
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -17,9 +18,19 @@ type TitleScene struct {
 }
 
 var (
-	highScore int
+	highScore         int
 	originalHighScore int
 )
+
+func init() {
+	hs, err := getHighScore()
+	if err != nil {
+		fmt.Println("Error getting high score", err)
+	}
+
+	highScore = hs
+	originalHighScore = hs
+}
 
 func (t *TitleScene) Draw(screen *ebiten.Image) {
 	// Draw stars.
