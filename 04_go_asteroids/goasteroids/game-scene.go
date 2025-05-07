@@ -55,9 +55,10 @@ type GameScene struct {
 	beatTimer            *Timer        // The time for playing beats one and two.
 	beatWaitTime         int           // The time to wait between beats. Reduced over time in each level.
 	playBeatOne          bool          // Should we play beat one? Yes, if true, otherwise play beat two.
-	playBeatTwo          bool          //
 	stars                []*Star       // The stars fr background.
 	currentLevel         int           // The current level the player is on.
+	shield               *Shield       // The player's shield.
+	shieldsUpPlayer      *audio.Player // The player's shield sound.
 }
 
 // NewGameScene is a factory method for producing a new game. It's called once,
@@ -108,6 +109,9 @@ func NewGameScene() *GameScene {
 
 	beatTwoPlayer, _ := g.audioContex.NewPlayer(assets.BeatTwoSound)
 	g.beatTwoPlayer = beatTwoPlayer
+
+	shieldsUpPlayer, _ := g.audioContex.NewPlayer(assets.ShieldSound)
+	g.shieldsUpPlayer = shieldsUpPlayer
 
 	return g
 }
@@ -160,6 +164,11 @@ func (g *GameScene) Draw(screen *ebiten.Image) {
 	// Draw exhaust.
 	if g.exhaust != nil {
 		g.exhaust.Draw(screen)
+	}
+
+	// Draw shield
+	if g.shield != nil {
+		g.shield.Draw(screen)
 	}
 
 	// Draw meteors.
