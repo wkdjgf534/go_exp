@@ -2,12 +2,13 @@ package goasteroids
 
 import (
 	"fmt"
-	"go-asteroids/assets"
 	"image/color"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
+
+	"go-asteroids/assets"
 )
 
 type LevelStartsScene struct {

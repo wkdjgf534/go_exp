@@ -1,10 +1,10 @@
 package goasteroids
 
 import (
-	"go-asteroids/assets"
-
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/solarlune/resolv"
+
+	"go-asteroids/assets"
 )
 
 type Shield struct {

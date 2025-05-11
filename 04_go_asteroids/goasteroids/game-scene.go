@@ -190,6 +190,13 @@ func (g *GameScene) Draw(screen *ebiten.Image) {
 		}
 	}
 
+	// Draw shield indicators.
+	if len(g.player.shieldIndicators) > 0 {
+		for _, x := range g.player.shieldIndicators {
+			x.Draw(screen)
+		}
+	}
+
 	// Updated and draw score.
 	textToDraw := fmt.Sprintf("%06d", g.score)
 	op := &text.DrawOptions{
@@ -389,14 +396,16 @@ func (g *GameScene) isPlayerDead(state *State) {
 			lifeSlice := g.player.lifeIndicators[:len(g.player.lifeIndicators)-1]
 			stars := g.stars
 			shieldsRemaining := g.player.shieldsRemaining
+			shieldIndicatorSlice := g.player.shieldIndicators
 
 			g.Reset()
-
+			// After reset, restore previous condition
 			g.player.livesRemaining = livesRemaining
 			g.score = score
 			g.player.lifeIndicators = lifeSlice
 			g.stars = stars
 			g.player.shieldsRemaining = shieldsRemaining
+			g.player.shieldIndicators = shieldIndicatorSlice
 		}
 	}
 }
@@ -472,4 +481,5 @@ func (g *GameScene) Reset() {
 	g.space.Add(g.player.playerObj)
 	g.stars = GenerateStars(numberOfStars)
 	g.player.shieldsRemaining = numberOfShields
+	g.player.isShielded = false
 }
