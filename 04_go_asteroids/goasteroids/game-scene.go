@@ -122,6 +122,8 @@ func (g *GameScene) Update(state *State) error {
 
 	g.updateExhaust()
 
+	g.updateShield()
+
 	g.isPlayerDying()
 
 	g.isPlayerDead(state)
@@ -238,6 +240,12 @@ func (g *GameScene) Draw(screen *ebiten.Image) {
 // Layout is necessary to satisfy interface requirements from ebiten.
 func (g *GameScene) Layout(outsideWidth, outsideHeight int) (ScreenWidth, ScreenHeight int) {
 	return outsideWidth, outsideHeight
+}
+
+func (g *GameScene) updateShield() {
+	if g.shield != nil {
+		g.shield.Update()
+	}
 }
 
 func (g *GameScene) isLevelComplete(state *State) {
@@ -380,6 +388,7 @@ func (g *GameScene) isPlayerDead(state *State) {
 			livesRemaining := g.player.livesRemaining
 			lifeSlice := g.player.lifeIndicators[:len(g.player.lifeIndicators)-1]
 			stars := g.stars
+			shieldsRemaining := g.player.shieldsRemaining
 
 			g.Reset()
 
@@ -387,6 +396,7 @@ func (g *GameScene) isPlayerDead(state *State) {
 			g.score = score
 			g.player.lifeIndicators = lifeSlice
 			g.stars = stars
+			g.player.shieldsRemaining = shieldsRemaining
 		}
 	}
 }
@@ -461,4 +471,5 @@ func (g *GameScene) Reset() {
 	g.space.RemoveAll()
 	g.space.Add(g.player.playerObj)
 	g.stars = GenerateStars(numberOfStars)
+	g.player.shieldsRemaining = numberOfShields
 }

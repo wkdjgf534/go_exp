@@ -22,6 +22,8 @@ const (
 	maxShotsPerBurts     = 3
 	dyingAnimationAmount = 50 * time.Millisecond
 	numberOfLives        = 3
+	numberOfShields      = 3
+	shieldDuration       = time.Second * 6
 )
 
 var (
@@ -30,21 +32,23 @@ var (
 )
 
 type Player struct {
-	game           *GameScene    // The current game scene.
-	sprite         *ebiten.Image // The player's sprite.
-	rotation       float64       // The current player's rotation.
-	position       Vector        // Where is the player on the screen.
-	playerVelocity float64
-	playerObj      *resolv.Circle
-	shootCoolDown  *Timer
-	burstCoolDown  *Timer
-	isShielded     bool
-	isDying        bool
-	isDead         bool
-	dyingTimer     *Timer
-	dyingCounter   int
-	livesRemaining int
-	lifeIndicators []*LifeIndicator
+	game             *GameScene    // The current game scene.
+	sprite           *ebiten.Image // The player's sprite.
+	rotation         float64       // The current player's rotation.
+	position         Vector        // Where is the player on the screen.
+	playerVelocity   float64
+	playerObj        *resolv.Circle
+	shootCoolDown    *Timer
+	burstCoolDown    *Timer
+	isShielded       bool
+	isDying          bool
+	isDead           bool
+	dyingTimer       *Timer
+	dyingCounter     int
+	livesRemaining   int
+	lifeIndicators   []*LifeIndicator
+	shieldTimer      *Timer
+	shieldsRemaining int
 }
 
 func NewPlayer(game *GameScene) *Player {
@@ -73,19 +77,20 @@ func NewPlayer(game *GameScene) *Player {
 	}
 
 	p := &Player{
-		sprite:         sprite,
-		game:           game,
-		position:       pos,
-		playerObj:      playerObj,
-		shootCoolDown:  NewTimer(shootCoolDown),
-		burstCoolDown:  NewTimer(burstCoolDown),
-		isShielded:     false,
-		isDying:        false,
-		isDead:         false,
-		dyingTimer:     NewTimer(dyingAnimationAmount),
-		dyingCounter:   0,
-		livesRemaining: numberOfLives,
-		lifeIndicators: lifeIndicators,
+		sprite:           sprite,
+		game:             game,
+		position:         pos,
+		playerObj:        playerObj,
+		shootCoolDown:    NewTimer(shootCoolDown),
+		burstCoolDown:    NewTimer(burstCoolDown),
+		isShielded:       false,
+		isDying:          false,
+		isDead:           false,
+		dyingTimer:       NewTimer(dyingAnimationAmount),
+		dyingCounter:     0,
+		livesRemaining:   numberOfLives,
+		lifeIndicators:   lifeIndicators,
+		shieldsRemaining: numberOfShields,
 	}
 
 	p.playerObj.SetPosition(pos.X, pos.Y)
@@ -124,6 +129,9 @@ func (p *Player) Update() {
 	}
 
 	p.accelerate()
+
+	p.useShield()
+
 	p.isDoneAccelerating()
 
 	p.reverse()
@@ -137,6 +145,31 @@ func (p *Player) Update() {
 	p.shootCoolDown.Update()
 
 	p.fireLasers()
+}
+
+func (p *Player) useShield() {
+	if ebiten.IsKeyPressed(ebiten.KeyS) && !p.isShielded && p.shieldsRemaining > 0 {
+		if !p.game.shieldsUpPlayer.IsPlaying() {
+			_ = p.game.shieldsUpPlayer.Rewind()
+			p.game.shieldsUpPlayer.Play()
+		}
+
+		p.isShielded = true
+		p.shieldTimer = NewTimer(shieldDuration)
+		p.game.shield = NewShield(Vector{}, p.rotation, p.game)
+		p.shieldsRemaining--
+	}
+
+	if p.shieldTimer != nil && p.isShielded {
+		p.shieldTimer.Update()
+	}
+
+	if p.shieldTimer != nil && p.shieldTimer.IsReady() {
+		p.shieldTimer = nil
+		p.isShielded = false
+		p.game.space.Remove(p.game.shield.shieldObj)
+		p.game.shield = nil
+	}
 }
 
 func (p *Player) isPlayerDead() {
