@@ -7,25 +7,25 @@ import (
 	"go-asteroids/assets"
 )
 
-type LifeIndicator struct {
+type ShieldIndicator struct {
 	position Vector
 	rotation float64
 	sprite   *ebiten.Image
 }
 
-func NewLifeIndicator(pos Vector) *LifeIndicator {
-	sprite := assets.LifeIndicator
-
-	return &LifeIndicator{
+func NewShieldIndicator(pos Vector) *ShieldIndicator {
+	return &ShieldIndicator{
 		position: pos,
-		sprite:   sprite,
+		sprite:   assets.ShieldIndicator,
 	}
 }
 
-func (l *LifeIndicator) Update() {}
+func (si *ShieldIndicator) Update() {
 
-func (l *LifeIndicator) Draw(screen *ebiten.Image) {
-	bounds := l.sprite.Bounds()
+}
+
+func (si *ShieldIndicator) Draw(screen *ebiten.Image) {
+	bounds := si.sprite.Bounds()
 	halfW := float64(bounds.Dx()) / 2
 	halfH := float64(bounds.Dy()) / 2
 
@@ -35,6 +35,6 @@ func (l *LifeIndicator) Draw(screen *ebiten.Image) {
 	cm := colorm.ColorM{}
 	cm.Scale(1.0, 1.0, 1.0, 0.2)
 
-	op.GeoM.Translate(l.position.X, l.position.Y)
-	colorm.DrawImage(screen, l.sprite, cm, op)
+	op.GeoM.Translate(si.position.X, si.position.Y)
+	colorm.DrawImage(screen, si.sprite, cm, op)
 }

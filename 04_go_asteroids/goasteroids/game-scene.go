@@ -55,9 +55,10 @@ type GameScene struct {
 	beatTimer            *Timer        // The time for playing beats one and two.
 	beatWaitTime         int           // The time to wait between beats. Reduced over time in each level.
 	playBeatOne          bool          // Should we play beat one? Yes, if true, otherwise play beat two.
-	playBeatTwo          bool          //
 	stars                []*Star       // The stars fr background.
 	currentLevel         int           // The current level the player is on.
+	shield               *Shield       // The player's shield.
+	shieldsUpPlayer      *audio.Player // The player's shield sound.
 }
 
 // NewGameScene is a factory method for producing a new game. It's called once,
@@ -109,6 +110,9 @@ func NewGameScene() *GameScene {
 	beatTwoPlayer, _ := g.audioContex.NewPlayer(assets.BeatTwoSound)
 	g.beatTwoPlayer = beatTwoPlayer
 
+	shieldsUpPlayer, _ := g.audioContex.NewPlayer(assets.ShieldSound)
+	g.shieldsUpPlayer = shieldsUpPlayer
+
 	return g
 }
 
@@ -117,6 +121,8 @@ func (g *GameScene) Update(state *State) error {
 	g.player.Update()
 
 	g.updateExhaust()
+
+	g.updateShield()
 
 	g.isPlayerDying()
 
@@ -162,6 +168,11 @@ func (g *GameScene) Draw(screen *ebiten.Image) {
 		g.exhaust.Draw(screen)
 	}
 
+	// Draw shield
+	if g.shield != nil {
+		g.shield.Draw(screen)
+	}
+
 	// Draw meteors.
 	for _, m := range g.meteors {
 		m.Draw(screen)
@@ -175,6 +186,13 @@ func (g *GameScene) Draw(screen *ebiten.Image) {
 	// Draw life indicators.
 	if len(g.player.lifeIndicators) > 0 {
 		for _, x := range g.player.lifeIndicators {
+			x.Draw(screen)
+		}
+	}
+
+	// Draw shield indicators.
+	if len(g.player.shieldIndicators) > 0 {
+		for _, x := range g.player.shieldIndicators {
 			x.Draw(screen)
 		}
 	}
@@ -229,6 +247,12 @@ func (g *GameScene) Draw(screen *ebiten.Image) {
 // Layout is necessary to satisfy interface requirements from ebiten.
 func (g *GameScene) Layout(outsideWidth, outsideHeight int) (ScreenWidth, ScreenHeight int) {
 	return outsideWidth, outsideHeight
+}
+
+func (g *GameScene) updateShield() {
+	if g.shield != nil {
+		g.shield.Update()
+	}
 }
 
 func (g *GameScene) isLevelComplete(state *State) {
@@ -371,13 +395,17 @@ func (g *GameScene) isPlayerDead(state *State) {
 			livesRemaining := g.player.livesRemaining
 			lifeSlice := g.player.lifeIndicators[:len(g.player.lifeIndicators)-1]
 			stars := g.stars
+			shieldsRemaining := g.player.shieldsRemaining
+			shieldIndicatorSlice := g.player.shieldIndicators
 
 			g.Reset()
-
+			// After reset, restore previous condition
 			g.player.livesRemaining = livesRemaining
 			g.score = score
 			g.player.lifeIndicators = lifeSlice
 			g.stars = stars
+			g.player.shieldsRemaining = shieldsRemaining
+			g.player.shieldIndicators = shieldIndicatorSlice
 		}
 	}
 }
@@ -452,4 +480,6 @@ func (g *GameScene) Reset() {
 	g.space.RemoveAll()
 	g.space.Add(g.player.playerObj)
 	g.stars = GenerateStars(numberOfStars)
+	g.player.shieldsRemaining = numberOfShields
+	g.player.isShielded = false
 }

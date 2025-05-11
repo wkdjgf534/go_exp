@@ -14,7 +14,7 @@ const exhaustSpawnOffset = -50 // How far from the player sprite the exhaust sho
 type Exhaust struct {
 	position Vector
 	rotation float64
-	sprite *ebiten.Image
+	sprite   *ebiten.Image
 }
 
 // NewExhaust creates a new exhaust object.
@@ -31,10 +31,11 @@ func NewExhaust(pos Vector, rotation float64) *Exhaust {
 	return &Exhaust{
 		position: pos,
 		rotation: rotation,
-		sprite: sprite,
+		sprite:   sprite,
 	}
 }
 
+// Update updates the exhaust object.
 func (e *Exhaust) Draw(screen *ebiten.Image) {
 	bounds := e.sprite.Bounds()
 	halfW := float64(bounds.Dx()) / 2
@@ -49,6 +50,7 @@ func (e *Exhaust) Draw(screen *ebiten.Image) {
 	screen.DrawImage(e.sprite, op)
 }
 
+// Draw draws the exhaust object.
 func (e *Exhaust) Update() {
 	speed := maxAcceleration / float64(ebiten.TPS())
 	e.position.X += math.Sin(e.rotation) * speed
