@@ -1,6 +1,7 @@
 package goasteroids
 
 import (
+	"go-asteroids/assets"
 	"math"
 	"math/rand"
 	"time"
@@ -8,8 +9,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/solarlune/resolv"
-
-	"go-asteroids/assets"
 )
 
 const (
@@ -19,43 +18,45 @@ const (
 	ScreenHeight         = 720  // The height of the screen.
 	shootCoolDown        = time.Millisecond * 150
 	burstCoolDown        = time.Millisecond * 500
-	laserSpawnOffSet     = 50.0
-	maxShotsPerBurts     = 3
+	laserSpawnOffset     = 50.0
+	maxShotsPerBurst     = 3
 	dyingAnimationAmount = 50 * time.Millisecond
 	numberOfLives        = 3
 	numberOfShields      = 3
 	shieldDuration       = time.Second * 6
 	hyperSpaceCooldown   = time.Second * 10
+	driftTime            = time.Second * 30
 )
 
-var (
-	curAcceleration float64 // We use this to gradually increase acceleration.
-	shotsFired      = 0     // A counter to keep track of max shots per burst.
-)
+var curAcceleration float64 // We use this to gradually increase acceleration.
+var shotsFired = 0          // A counter to keep track of max shots per burst.
 
 type Player struct {
-	game                *GameScene    // The current game scene.
-	sprite              *ebiten.Image // The player's sprite.
-	rotation            float64       // The current player's rotation.
-	position            Vector        // Where is the player on the screen.
-	playerVelocity      float64
-	playerObj           *resolv.Circle
-	shootCoolDown       *Timer
-	burstCoolDown       *Timer
-	isShielded          bool
-	isDying             bool
-	isDead              bool
-	dyingTimer          *Timer
-	dyingCounter        int
-	livesRemaining      int
+	game                *GameScene     // The current game scene.
+	sprite              *ebiten.Image  // The player's sprite.
+	rotation            float64        // The current player's rotation.
+	position            Vector         // Where is the player on the screen.
+	playerVelocity      float64        // How fast is the player moving.
+	playerObj           *resolv.Circle // The player's collision object.
+	shootCoolDown       *Timer         // Pause between shots.
+	burstCoolDown       *Timer         // Pause between bursts of shots.
+	isShielded          bool           // Is the player currently shielded?
+	isDying             bool           // Is the player dying?
+	isDead              bool           // Is the player dead?
+	dyingTimer          *Timer         // How long should a player stay in dying mode for each frame of the dying animation?
+	dyingCounter        int            // A counter used for explosion animation.
+	livesRemaining      int            // How many lives does the player have left?
 	lifeIndicators      []*LifeIndicator
 	shieldTimer         *Timer
 	shieldsRemaining    int
 	shieldIndicators    []*ShieldIndicator
 	hyperspaceIndicator *HyperspaceIndicator
 	hyperSpaceTimer     *Timer
+	driftTimer          *Timer
+	driftAngle          float64
 }
 
+// NewPlayer is a factory method for creating a new player.
 func NewPlayer(game *GameScene) *Player {
 	sprite := assets.PlayerSprite
 
@@ -74,7 +75,6 @@ func NewPlayer(game *GameScene) *Player {
 
 	var lifeIndicators []*LifeIndicator
 	var xPosition = 20.0
-
 	for i := 0; i < numberOfLives; i++ {
 		li := NewLifeIndicator(Vector{X: xPosition, Y: 20})
 		lifeIndicators = append(lifeIndicators, li)
@@ -83,7 +83,6 @@ func NewPlayer(game *GameScene) *Player {
 
 	var shieldIndicators []*ShieldIndicator
 	xPosition = 45.0
-
 	for i := 0; i < numberOfShields; i++ {
 		si := NewShieldIndicator(Vector{X: xPosition, Y: 60})
 		shieldIndicators = append(shieldIndicators, si)
@@ -108,6 +107,7 @@ func NewPlayer(game *GameScene) *Player {
 		shieldIndicators:    shieldIndicators,
 		hyperspaceIndicator: NewHyperspaceIndicator(Vector{X: 37.0, Y: 95.0}),
 		hyperSpaceTimer:     nil,
+		driftTimer:          nil,
 	}
 
 	p.playerObj.SetPosition(pos.X, pos.Y)
@@ -116,6 +116,7 @@ func NewPlayer(game *GameScene) *Player {
 	return p
 }
 
+// Draw draws the player on the screen. Called once per frame.
 func (p *Player) Draw(screen *ebiten.Image) {
 	bounds := p.sprite.Bounds()
 	halfW := float64(bounds.Dx()) / 2
@@ -132,6 +133,7 @@ func (p *Player) Draw(screen *ebiten.Image) {
 	screen.DrawImage(p.sprite, op)
 }
 
+// Update updates the player for the next draw. Called once per tick.
 func (p *Player) Update() {
 	speed := rotationPerSecond / float64(ebiten.TPS())
 
@@ -152,13 +154,19 @@ func (p *Player) Update() {
 	p.isDoneAccelerating()
 
 	p.reverse()
+
 	p.isDoneReversing()
+
+	p.isPlayerDrifting()
+
+	p.isDriftFinished()
 
 	p.updateExhaustSprite()
 
 	p.playerObj.SetPosition(p.position.X, p.position.Y)
 
 	p.burstCoolDown.Update()
+
 	p.shootCoolDown.Update()
 
 	p.fireLasers()
@@ -167,6 +175,27 @@ func (p *Player) Update() {
 
 	if p.hyperSpaceTimer != nil {
 		p.hyperSpaceTimer.Update()
+	}
+}
+
+func (p *Player) isPlayerDrifting() {
+	if p.driftTimer != nil {
+		p.keepOnScreen()
+
+		p.driftTimer.Update()
+
+		decelerationSpeed := p.playerVelocity / float64(ebiten.TPS()) * 4
+
+		p.position.X += math.Sin(p.driftAngle) * decelerationSpeed
+		p.position.Y += math.Cos(p.driftAngle) * -decelerationSpeed
+		p.playerObj.SetPosition(p.position.X, p.position.Y)
+	}
+}
+
+func (p *Player) isDriftFinished() {
+	if p.driftTimer != nil && p.driftTimer.IsReady() {
+		p.driftTimer = nil
+		p.playerVelocity = 0
 	}
 }
 
@@ -181,16 +210,15 @@ func (p *Player) hyperSpace() {
 			if !collision {
 				break
 			}
-
-			p.position.X = float64(randX)
-			p.position.Y = float64(randY)
-
-			if p.hyperSpaceTimer == nil {
-				p.hyperSpaceTimer = NewTimer(hyperSpaceCooldown)
-			}
-
-			p.hyperSpaceTimer.Reset()
 		}
+
+		p.position.X = float64(randX)
+		p.position.Y = float64(randY)
+
+		if p.hyperSpaceTimer == nil {
+			p.hyperSpaceTimer = NewTimer(hyperSpaceCooldown)
+		}
+		p.hyperSpaceTimer.Reset()
 	}
 }
 
@@ -220,25 +248,27 @@ func (p *Player) useShield() {
 	}
 }
 
+// isPlayerDead checks to see if the player is dead. If so, set playerIsDead field to true in GameScene.
 func (p *Player) isPlayerDead() {
 	if p.isDead {
 		p.game.playerIsDead = true
 	}
 }
 
+// fireLasers fires a laser and plays a sound.
 func (p *Player) fireLasers() {
 	if p.burstCoolDown.IsReady() {
 		if p.shootCoolDown.IsReady() && ebiten.IsKeyPressed(ebiten.KeySpace) {
 			p.shootCoolDown.Reset()
 			shotsFired++
-			if shotsFired <= maxShotsPerBurts {
+			if shotsFired <= maxShotsPerBurst {
 				bounds := p.sprite.Bounds()
 				halfW := float64(bounds.Dx()) / 2
 				halfH := float64(bounds.Dy()) / 2
 
 				spawnPos := Vector{
-					p.position.X + halfW + math.Sin(p.rotation)*laserSpawnOffSet,
-					p.position.Y + halfH + math.Cos(p.rotation)*-laserSpawnOffSet,
+					p.position.X + halfW + math.Sin(p.rotation)*laserSpawnOffset,
+					p.position.Y + halfH + math.Cos(p.rotation)*-laserSpawnOffset,
 				}
 
 				p.game.laserCount++
@@ -271,8 +301,11 @@ func (p *Player) fireLasers() {
 	}
 }
 
+// accelerate moves the player forward in whatever direction they are pointing and plays a sound.
 func (p *Player) accelerate() {
 	if ebiten.IsKeyPressed(ebiten.KeyUp) {
+		p.driftTimer = nil
+
 		p.keepOnScreen()
 
 		if curAcceleration < maxAcceleration {
@@ -313,16 +346,38 @@ func (p *Player) accelerate() {
 	}
 }
 
+// isDoneAccelerating pauses the thrust sound when the KeyUp is released.
 func (p *Player) isDoneAccelerating() {
 	if inpututil.IsKeyJustReleased(ebiten.KeyUp) {
 		if p.game.thrustPlayer.IsPlaying() {
 			p.game.thrustPlayer.Pause()
 		}
+
+		// Figure out velocity
+		if p.playerVelocity < curAcceleration * 10 {
+			// Subtract a bit from speed
+			p.playerVelocity = curAcceleration * 10 - 5.0
+		}
+
+		if p.playerVelocity < 0 {
+			p.playerVelocity = 0
+		}
+
+		curAcceleration = 0
+
+		// Create a drift timer
+		p.driftTimer = NewTimer(driftTime)
+
+		// Save angle of rotation
+		p.driftAngle = p.rotation
 	}
 }
 
+// reverse moves the player backwards and plays a sound.
 func (p *Player) reverse() {
 	if ebiten.IsKeyPressed(ebiten.KeyDown) {
+		p.driftTimer = nil
+
 		p.keepOnScreen()
 
 		dx := math.Sin(p.rotation) * -3
@@ -349,8 +404,10 @@ func (p *Player) reverse() {
 			p.game.thrustPlayer.Play()
 		}
 	}
+
 }
 
+// isDoneReversing stops the thrust sound when keyDown is released.
 func (p *Player) isDoneReversing() {
 	if inpututil.IsKeyJustReleased(ebiten.KeyDown) {
 		if p.game.thrustPlayer.IsPlaying() {
@@ -359,12 +416,14 @@ func (p *Player) isDoneReversing() {
 	}
 }
 
+// updateExhaustSprite hides the exhaust sprite when the exhaust is nil, or the player has stopped moving.
 func (p *Player) updateExhaustSprite() {
 	if !ebiten.IsKeyPressed(ebiten.KeyUp) && !ebiten.IsKeyPressed(ebiten.KeyDown) && p.game.exhaust != nil {
 		p.game.exhaust = nil
 	}
 }
 
+// keepOnScreen keeps the player on the screen.
 func (p *Player) keepOnScreen() {
 	if p.position.X >= float64(ScreenWidth) {
 		p.position.X = 0
