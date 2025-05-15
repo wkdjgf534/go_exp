@@ -173,6 +173,11 @@ func (g *GameScene) Draw(screen *ebiten.Image) {
 		g.shield.Draw(screen)
 	}
 
+	// Draw hyperspace indicator
+	if g.player.hyperSpaceTimer == nil || g.player.hyperSpaceTimer.IsReady() {
+		g.player.hyperspaceIndicator.Draw(screen)
+	}
+
 	// Draw meteors.
 	for _, m := range g.meteors {
 		m.Draw(screen)
@@ -446,9 +451,26 @@ func (g *GameScene) isPlayerCollidingWithMeteor() {
 				break
 			} else {
 				// Bounce the meteor
+				g.bounceMeteor(m)
 			}
 		}
 	}
+}
+
+func (g *GameScene) bounceMeteor(m *Meteor) {
+	direction := Vector{
+		X: (ScreenWidth/2 - m.position.X) * -1,
+		Y: (ScreenHeight/2 - m.position.Y) * -1,
+	}
+	normalizedDirection := direction.Normalize()
+	velocity := g.baseVelocity * 1.5
+
+	movement := Vector{
+		X: normalizedDirection.X * velocity,
+		Y: normalizedDirection.Y * velocity,
+	}
+
+	m.movement = movement
 }
 
 func (g *GameScene) cleanUpMeteorsAndAliens() {
