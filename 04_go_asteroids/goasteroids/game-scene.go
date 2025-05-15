@@ -173,6 +173,11 @@ func (g *GameScene) Draw(screen *ebiten.Image) {
 		g.shield.Draw(screen)
 	}
 
+	// Draw hyperspace indicator
+	if g.player.hyperSpaceTimer == nil || g.player.hyperSpaceTimer.IsReady() {
+		g.player.hyperspaceIndicator.Draw(screen)
+	}
+
 	// Draw meteors.
 	for _, m := range g.meteors {
 		m.Draw(screen)
