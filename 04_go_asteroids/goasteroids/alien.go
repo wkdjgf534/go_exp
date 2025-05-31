@@ -1,12 +1,13 @@
 package goasteroids
 
 import (
-	"go-asteroids/assets"
 	"math"
 	"math/rand"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/solarlune/resolv"
+
+	"go-asteroids/assets"
 )
 
 type Alien struct {
@@ -106,8 +107,8 @@ func NewAlient(baseVelocity float64, g *GameScene) *Alien {
 		target := g.player.position
 
 		direction := Vector{
-			X: target.X - pos.Y,
-			Y: target.Y - pos.X,
+			X: target.X - pos.X,
+			Y: target.Y - pos.Y,
 		}
 
 		normalizedDirection := direction.Normalize()

@@ -23,6 +23,8 @@ const (
 	cleanUpExplosionTime = 500 * time.Millisecond  // The time to wait for cleaning up explosions.
 	baseBeatWaitTime     = 1600                    // Base number of milliseconds to wait between beats of background. This is an int because we do math on it.
 	numberOfStars        = 1000                    // The number of stars to display on the background.
+	alienAttackTime      = 3 * time.Second
+	alienSpawnTime       = 12 * time.Second
 )
 
 // GameScene is the overall type for a game scene (e.g. TitleScene, GameScene, etc.).
@@ -59,6 +61,14 @@ type GameScene struct {
 	currentLevel         int           // The current level the player is on.
 	shield               *Shield       // The player's shield.
 	shieldsUpPlayer      *audio.Player // The player's shield sound.
+	alienAttackTimer     *Timer
+	alienCount           int
+	alienLaserCount      int
+	alienLaserPlayer     *audio.Player
+	alienLasers          map[int]*AlienLaser
+	alienSoundPlayer     *audio.Player
+	alienSpawnTimer      *Timer
+	aliens               map[int]*Alien
 }
 
 // NewGameScene is a factory method for producing a new game. It's called once,
@@ -80,6 +90,10 @@ func NewGameScene() *GameScene {
 		beatTimer:            NewTimer(2 * time.Second),
 		beatWaitTime:         baseBeatWaitTime,
 		currentLevel:         1,
+		aliens:               make(map[int]*Alien),
+		alienCount:           0,
+		alienLasers:          make(map[int]*AlienLaser),
+		alienLaserCount:      0,
 	}
 	g.player = NewPlayer(g)
 	g.space.Add(g.player.playerObj)
@@ -112,6 +126,13 @@ func NewGameScene() *GameScene {
 
 	shieldsUpPlayer, _ := g.audioContex.NewPlayer(assets.ShieldSound)
 	g.shieldsUpPlayer = shieldsUpPlayer
+
+	alienLaserPlayer, _ := g.audioContex.NewPlayer(assets.AlienLaserSound)
+	g.alienLaserPlayer = alienLaserPlayer
+
+	alienSoundPlayer, _ := g.audioContex.NewPlayer(assets.AlienSound)
+	alienSoundPlayer.SetVolume(0.5)
+	g.alienSoundPlayer = alienSoundPlayer
 
 	return g
 }
