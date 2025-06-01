@@ -20,7 +20,7 @@ type Alien struct {
 	isIntelligent bool
 }
 
-func NewAlient(baseVelocity float64, g *GameScene) *Alien {
+func NewAlien(baseVelocity float64, g *GameScene) *Alien {
 	var alien Alien
 
 	alienType := rand.Intn(3)

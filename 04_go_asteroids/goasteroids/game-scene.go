@@ -25,6 +25,7 @@ const (
 	numberOfStars        = 1000                    // The number of stars to display on the background.
 	alienAttackTime      = 3 * time.Second
 	alienSpawnTime       = 12 * time.Second
+	baseAlienVelocity    = 0.5
 )
 
 // GameScene is the overall type for a game scene (e.g. TitleScene, GameScene, etc.).
@@ -94,6 +95,8 @@ func NewGameScene() *GameScene {
 		alienCount:           0,
 		alienLasers:          make(map[int]*AlienLaser),
 		alienLaserCount:      0,
+		alienSpawnTimer:      NewTimer(alienSpawnTime),
+		alienAttackTimer:     NewTimer(alienAttackTime),
 	}
 	g.player = NewPlayer(g)
 	g.space.Add(g.player.playerObj)
@@ -149,7 +152,13 @@ func (g *GameScene) Update(state *State) error {
 
 	g.isPlayerDead(state)
 
-	g.spawnMeteors()
+	//g.spawnMeteors()
+
+	g.spawnAliens()
+
+	for _, a := range g.aliens {
+		a.Update()
+	}
 
 	for _, m := range g.meteors {
 		m.Update()
@@ -170,6 +179,10 @@ func (g *GameScene) Update(state *State) error {
 	g.beatSound()
 
 	g.isLevelComplete(state)
+
+	g.removeOffScreenAliens()
+
+	g.removeOffScreenLasers()
 
 	return nil
 }
@@ -223,6 +236,10 @@ func (g *GameScene) Draw(screen *ebiten.Image) {
 		}
 	}
 
+	for _, a := range g.aliens {
+		a.Draw(screen)
+	}
+
 	// Updated and draw score.
 	textToDraw := fmt.Sprintf("%06d", g.score)
 	op := &text.DrawOptions{
@@ -273,6 +290,47 @@ func (g *GameScene) Draw(screen *ebiten.Image) {
 // Layout is necessary to satisfy interface requirements from ebiten.
 func (g *GameScene) Layout(outsideWidth, outsideHeight int) (ScreenWidth, ScreenHeight int) {
 	return outsideWidth, outsideHeight
+}
+
+func (g *GameScene) removeOffScreenLasers() {
+	// Player's laser beams
+	for i, l := range g.lasers {
+		if l.position.X > ScreenWidth+200 || l.position.Y > ScreenHeight+200 || l.position.X < -200 || l.position.Y < -200 {
+			g.space.Remove(l.laserObj)
+			delete(g.aliens, i)
+		}
+	}
+
+	// Enemies' laser beams
+	for i, l := range g.alienLasers {
+		if l.position.X > ScreenWidth+200 || l.position.Y > ScreenHeight+200 || l.position.X < -200 || l.position.Y < -200 {
+			g.space.Remove(l.laserObj)
+			delete(g.aliens, i)
+		}
+	}
+}
+
+func (g *GameScene) spawnAliens() {
+	g.alienSpawnTimer.Update()
+	if g.alienSpawnTimer.IsReady() {
+		g.alienSpawnTimer.Reset()
+		rnd := rand.Intn(100-1) + 1
+		if rnd > 50 {
+			a := NewAlien(baseAlienVelocity, g)
+			g.space.Add(a.alienObj)
+			g.alienCount++
+			g.aliens[g.alienCount] = a
+		}
+	}
+}
+
+func (g *GameScene) removeOffScreenAliens() {
+	for i, a := range g.aliens {
+		if a.position.X > ScreenWidth+200 || a.position.Y > ScreenHeight+200 || a.position.X < -200 || a.position.Y < -200 {
+			g.space.Remove(a.alienObj)
+			delete(g.aliens, i)
+		}
+	}
 }
 
 func (g *GameScene) updateShield() {
