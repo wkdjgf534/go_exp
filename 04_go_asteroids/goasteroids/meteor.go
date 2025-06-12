@@ -16,7 +16,7 @@ const (
 	numberOfSmallMeteorsFromLargeMeteor = 4
 )
 
-// Meteor is the type for nall meteors, both big and small.
+// Meteor is the type for all meteors, both big and small.
 type Meteor struct {
 	game          *GameScene     // Embed the game so we have access to it.
 	position      Vector         // Where is the meteor.
@@ -31,19 +31,19 @@ type Meteor struct {
 // NewMeteor is a factory method which creates a new large meteor.
 func NewMeteor(baseVelocity float64, g *GameScene, index int) *Meteor {
 	// Target the center of the screen.
-	target := Vector {
-		X: ScreenWidth/2,
-		Y: ScreenHeight/2,
+	target := Vector{
+		X: ScreenWidth / 2,
+		Y: ScreenHeight / 2,
 	}
 
-    // Pick a random angle. 2π is 360°, so this returns an angle between 0° to 360°.
+	// Pick a random angle. 2π is 360°, so this returns an angle between 0° to 360°.
 	angle := rand.Float64() * 2 * math.Pi
 
 	// The distance from the center that meteor should spawn at. Half the width, add some arbitrary distance.
 	r := ScreenWidth/2.0 + 500
 
 	// Create the position vector, using the angle and simple math.
-	pos := Vector {
+	pos := Vector{
 		X: target.X + math.Cos(angle)*r,
 		Y: target.Y + math.Sin(angle)*r,
 	}
@@ -60,7 +60,7 @@ func NewMeteor(baseVelocity float64, g *GameScene, index int) *Meteor {
 	normalizedDirection := direction.Normalize()
 
 	// Create the movement vector.
-	movement := Vector {
+	movement := Vector{
 		X: normalizedDirection.X * velocity,
 		Y: normalizedDirection.Y * velocity,
 	}
@@ -69,7 +69,7 @@ func NewMeteor(baseVelocity float64, g *GameScene, index int) *Meteor {
 	sprite := assets.MeteorSprites[rand.Intn(len(assets.MeteorSprites))]
 
 	// Create the collision object.
-	meteoObj := resolv.NewCircle(pos.X, pos.Y, float64(sprite.Bounds().Dx()/2))
+	meteorObj := resolv.NewCircle(pos.X, pos.Y, float64(sprite.Bounds().Dx()/2))
 
 	// Create a meteor object and return it.
 	m := &Meteor{
@@ -79,7 +79,7 @@ func NewMeteor(baseVelocity float64, g *GameScene, index int) *Meteor {
 		rotationSpeed: rotationSpeedMin + rand.Float64()*(rotationSpeedMax-rotationSpeedMin),
 		sprite:        sprite,
 		angle:         angle,
-		meteorObj:     meteoObj,
+		meteorObj:     meteorObj,
 	}
 
 	m.meteorObj.SetPosition(pos.X, pos.Y)
@@ -92,19 +92,19 @@ func NewMeteor(baseVelocity float64, g *GameScene, index int) *Meteor {
 // NewSmallMeteor is a factory method which creates a new small meteor.
 func NewSmallMeteor(baseVelocity float64, g *GameScene, index int) *Meteor {
 	// Target the center of the screen.
-	target := Vector {
-		X: ScreenWidth/2,
-		Y: ScreenHeight/2,
+	target := Vector{
+		X: ScreenWidth / 2,
+		Y: ScreenHeight / 2,
 	}
 
-    // Pick a random angle. 2π is 360°, so this returns an angle between 0° to 360°.
+	// Pick a random angle. 2π is 360°, so this returns an angle between 0° to 360°.
 	angle := rand.Float64() * 2 * math.Pi
 
 	// The distance from the center that meteor should spawn at. Half the width, add some arbitrary distance.
 	r := ScreenWidth/2.0 + 500
 
 	// Create the position vector, using the angle and simple math.
-	pos := Vector {
+	pos := Vector{
 		X: target.X + math.Cos(angle)*r,
 		Y: target.Y + math.Sin(angle)*r,
 	}
@@ -121,7 +121,7 @@ func NewSmallMeteor(baseVelocity float64, g *GameScene, index int) *Meteor {
 	normalizedDirection := direction.Normalize()
 
 	// Create the movement vector.
-	movement := Vector {
+	movement := Vector{
 		X: normalizedDirection.X * velocity,
 		Y: normalizedDirection.Y * velocity,
 	}
@@ -130,7 +130,7 @@ func NewSmallMeteor(baseVelocity float64, g *GameScene, index int) *Meteor {
 	sprite := assets.MeteorSpritesSmall[rand.Intn(len(assets.MeteorSpritesSmall))]
 
 	// Create the collision object.
-	meteoObj := resolv.NewCircle(pos.X, pos.Y, float64(sprite.Bounds().Dx()/2))
+	meteorObj := resolv.NewCircle(pos.X, pos.Y, float64(sprite.Bounds().Dx()/2))
 
 	// Create a meteor object and return it.
 	m := &Meteor{
@@ -140,7 +140,7 @@ func NewSmallMeteor(baseVelocity float64, g *GameScene, index int) *Meteor {
 		rotationSpeed: rotationSpeedMin + rand.Float64()*(rotationSpeedMax-rotationSpeedMin),
 		sprite:        sprite,
 		angle:         angle,
-		meteorObj:     meteoObj,
+		meteorObj:     meteorObj,
 	}
 
 	m.meteorObj.SetPosition(pos.X, pos.Y)
@@ -150,6 +150,7 @@ func NewSmallMeteor(baseVelocity float64, g *GameScene, index int) *Meteor {
 	return m
 }
 
+// Update updates all game scene elements for the next draw. It's called once per tick.
 func (m *Meteor) Update() {
 	dx := m.movement.X
 	dy := m.movement.Y
@@ -163,6 +164,7 @@ func (m *Meteor) Update() {
 	m.meteorObj.SetPosition(m.position.X, m.position.Y)
 }
 
+// Draw draws all game elements to the screen. It's called once per frame.
 func (m *Meteor) Draw(screen *ebiten.Image) {
 	bounds := m.sprite.Bounds()
 	halfW := float64(bounds.Dx()) / 2
@@ -178,6 +180,7 @@ func (m *Meteor) Draw(screen *ebiten.Image) {
 	screen.DrawImage(m.sprite, op)
 }
 
+// keepOnScreen keeps meteors on the screen.
 func (m *Meteor) keepOnScreen() {
 	if m.position.X >= float64(ScreenWidth) {
 		m.position.X = 0
@@ -193,6 +196,6 @@ func (m *Meteor) keepOnScreen() {
 	}
 	if m.position.Y < 0 {
 		m.position.Y = ScreenHeight
-		m.meteorObj.SetPosition(ScreenHeight, m.position.Y)
+		m.meteorObj.SetPosition(m.position.X, ScreenHeight)
 	}
 }

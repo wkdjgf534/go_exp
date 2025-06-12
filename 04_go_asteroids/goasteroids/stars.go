@@ -16,10 +16,10 @@ type Star struct {
 }
 
 func NewStar() *Star {
-	return &Star {
-		x: rand.Float32() * ScreenWidth,
-		y: rand.Float32() * ScreenHeight,
-		r: rand.Float32() * (3-1),
+	return &Star{
+		x:          rand.Float32() * ScreenWidth,
+		y:          rand.Float32() * ScreenHeight,
+		r:          rand.Float32() * (3 - 1),
 		brightness: rand.Float32() * 0xff,
 	}
 }
@@ -31,7 +31,6 @@ func (s *Star) Draw(screen *ebiten.Image) {
 		B: uint8(0xff * s.brightness / 0xff),
 		A: 0xff,
 	}
-
 	vector.DrawFilledCircle(screen, s.x, s.y, s.r, c, true)
 }
 
@@ -39,7 +38,7 @@ func (s *Star) Update() {}
 
 func GenerateStars(n int) []*Star {
 	var stars []*Star
-	for i:= 0; i < n; i++ {
+	for i := 0; i < n; i++ {
 		stars = append(stars, NewStar())
 	}
 

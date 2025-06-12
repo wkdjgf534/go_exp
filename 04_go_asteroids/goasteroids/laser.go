@@ -34,7 +34,7 @@ func NewLaser(pos Vector, rotation float64, index int, g *GameScene) *Laser {
 	pos.Y -= halfH
 
 	// Create a laser object
-	l := &Laser {
+	l := &Laser{
 		game:     g,
 		position: pos,
 		rotation: rotation,
@@ -56,11 +56,9 @@ func (l *Laser) Update() {
 	dx := math.Sin(l.rotation) * speed
 	dy := math.Cos(l.rotation) * -speed
 
-	// Update the laser position
 	l.position.X += dx
 	l.position.Y += dy
 
-	// Update the laser collision object position
 	l.laserObj.SetPosition(l.position.X, l.position.Y)
 }
 
@@ -77,4 +75,5 @@ func (l *Laser) Draw(screen *ebiten.Image) {
 	op.GeoM.Translate(l.position.X, l.position.Y)
 
 	screen.DrawImage(l.sprite, op)
+
 }

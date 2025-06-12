@@ -11,13 +11,16 @@ import (
 	"go-asteroids/assets"
 )
 
+// LevelStartsScene is the type for our title scene. It holds the game, a timer, and a slice of stars.
 type LevelStartsScene struct {
 	game           *GameScene
 	nextLevelTimer *Timer
 	stars          []*Star
 }
 
+// Draw puts all the elements on the screen. It's called once per frame.
 func (l *LevelStartsScene) Draw(screen *ebiten.Image) {
+	// Draw stars.
 	for _, s := range l.stars {
 		s.Draw(screen)
 	}
@@ -36,6 +39,7 @@ func (l *LevelStartsScene) Draw(screen *ebiten.Image) {
 	}, op)
 }
 
+// Update updates screen elements. It's called once per tick.
 func (l *LevelStartsScene) Update(state *State) error {
 	l.nextLevelTimer.Update()
 	if l.nextLevelTimer.IsReady() {
@@ -48,14 +52,12 @@ func (l *LevelStartsScene) Update(state *State) error {
 		state.SceneManager.GoToScene(l.game)
 	}
 
+	// Check to see  if the space bar is pressed. If it is, go to the next scene.
 	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
-		l.game.meteorsForLevel += 2
+		l.game.meteorsForLevel += 5
 		l.game.meteorCount = 0
-		for k, v := range l.game.lasers {
-			delete(l.game.lasers, k)
-			l.game.space.Remove(v.laserObj)
-		}
 		state.SceneManager.GoToScene(l.game)
+		return nil
 	}
 
 	return nil
