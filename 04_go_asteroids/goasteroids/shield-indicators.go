@@ -20,9 +20,7 @@ func NewShieldIndicator(pos Vector) *ShieldIndicator {
 	}
 }
 
-func (si *ShieldIndicator) Update() {
-
-}
+func (si *ShieldIndicator) Update() {}
 
 func (si *ShieldIndicator) Draw(screen *ebiten.Image) {
 	bounds := si.sprite.Bounds()
@@ -31,10 +29,8 @@ func (si *ShieldIndicator) Draw(screen *ebiten.Image) {
 
 	op := &colorm.DrawImageOptions{}
 	op.GeoM.Translate(halfW, halfH)
-
 	cm := colorm.ColorM{}
 	cm.Scale(1.0, 1.0, 1.0, 0.2)
-
 	op.GeoM.Translate(si.position.X, si.position.Y)
 	colorm.DrawImage(screen, si.sprite, cm, op)
 }

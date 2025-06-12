@@ -26,6 +26,7 @@ func NewShield(pos Vector, rotation float64, g *GameScene) *Shield {
 	pos.Y -= halfH
 
 	shieldObj := resolv.NewCircle(0, 0, halfW)
+
 	s := &Shield{
 		position:  pos,
 		rotation:  rotation,

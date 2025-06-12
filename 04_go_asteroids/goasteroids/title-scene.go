@@ -1,8 +1,8 @@
 package goasteroids
 
 import (
-	"fmt"
 	"image/color"
+	"log"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
@@ -11,33 +11,33 @@ import (
 	"go-asteroids/assets"
 )
 
+// TitleScene is the type for our title scene.
 type TitleScene struct {
-	meteors     map[int]*Meteor
-	meteorCount int
+	meteors     map[int]*Meteor // A map of meteors.
+	meteorCount int             // How many meteors we currently have in the game.
 	stars       []*Star
 }
 
-var (
-	highScore         int
-	originalHighScore int
-)
+var highScore int
+var originalHighScore int
 
 func init() {
 	hs, err := getHighScore()
 	if err != nil {
-		fmt.Println("Error getting high score", err)
+		log.Println("Error getting high score", err)
 	}
-
 	highScore = hs
 	originalHighScore = hs
 }
 
+// Draw draws all elements on the screen. It's called once per frame.
 func (t *TitleScene) Draw(screen *ebiten.Image) {
-	// Draw stars.
+	// Draw Stars.
 	for _, s := range t.stars {
 		s.Draw(screen)
 	}
 
+	// Draw 1 coin 1 play text.
 	textToDraw := "1 coin 1 play"
 
 	op := &text.DrawOptions{
@@ -52,23 +52,28 @@ func (t *TitleScene) Draw(screen *ebiten.Image) {
 		Size:   48,
 	}, op)
 
+	// Draw meteors.
 	for _, m := range t.meteors {
 		m.Draw(screen)
 	}
 }
 
+// Update updates all game scene elements for the next draw. It's called once per tick.
 func (t *TitleScene) Update(state *State) error {
+	// Check for a spacebar press.
 	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
 		state.SceneManager.GoToScene(NewGameScene())
 		return nil
 	}
 
+	// Draw meteors, if appropriate.
 	if len(t.meteors) < 10 {
 		m := NewMeteor(0.25, &GameScene{}, len(t.meteors)-1)
 		t.meteorCount++
 		t.meteors[t.meteorCount] = m
 	}
 
+	// Update meteors.
 	for _, m := range t.meteors {
 		m.Update()
 	}

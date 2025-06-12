@@ -31,10 +31,10 @@ func (l *LifeIndicator) Draw(screen *ebiten.Image) {
 
 	op := &colorm.DrawImageOptions{}
 	op.GeoM.Translate(halfW, halfH)
-
 	cm := colorm.ColorM{}
 	cm.Scale(1.0, 1.0, 1.0, 0.2)
 
 	op.GeoM.Translate(l.position.X, l.position.Y)
+
 	colorm.DrawImage(screen, l.sprite, cm, op)
 }

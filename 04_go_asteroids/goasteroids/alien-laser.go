@@ -20,23 +20,22 @@ type AlienLaser struct {
 	laserObj *resolv.ConvexPolygon
 }
 
-func NewAlienLaser(pos Vector, rotation float64) *AlienLaser {
+func NewAlienLaser(pos Vector, roation float64) *AlienLaser {
 	sprite := assets.AlienLaserSprite
 
 	bounds := sprite.Bounds()
-	halfW := float64(bounds.Dx() / 2)
-	halfH := float64(bounds.Dy() / 2)
+	halfW := float64(bounds.Dx()) / 2
+	halfH := float64(bounds.Dy()) / 2
 
 	pos.X -= halfW
 	pos.Y -= halfH
 
 	al := &AlienLaser{
 		position: pos,
-		rotation: rotation,
+		rotation: roation,
 		sprite:   sprite,
 		laserObj: resolv.NewRectangle(pos.X, pos.Y, float64(sprite.Bounds().Dx()), float64(sprite.Bounds().Dy())),
 	}
-
 	al.laserObj.SetPosition(pos.X, pos.Y)
 	al.laserObj.Tags().Set(TagLaser)
 

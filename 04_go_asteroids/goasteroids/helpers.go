@@ -19,11 +19,11 @@ func getHighScore() (int, error) {
 	path := ""
 	switch runtime.GOOS {
 	case "darwin":
-		path = fmt.Sprintf("/Users/%s/Libary/Application Support/ Go Asteroids", u.Username)
+		path = fmt.Sprintf("/Users/%s/Library/Application Support/Go Asteroids", u.Username)
 	case "windows":
 		path = fmt.Sprintf("C:\\Users\\%s\\AppData", u.Username)
 	default:
-		path = fmt.Sprintf("/home/%s", u.Username)
+		path = fmt.Sprintf("/users/%s", u.Username)
 	}
 
 	if _, err := os.Stat(path); err != nil {
@@ -33,7 +33,7 @@ func getHighScore() (int, error) {
 	}
 
 	if _, err := os.Stat(path + "/high-score.txt"); err != nil {
-		err := os.WriteFile(path+"/high-score.txt", []byte("0"), 0750)
+		err := os.WriteFile(path + "/high-score.txt", []byte("0"), 0750)
 		if err != nil {
 			return 0, err
 		}
@@ -43,10 +43,8 @@ func getHighScore() (int, error) {
 	if err != nil {
 		return 0, err
 	}
-
 	score := string(contents)
 	score = strings.TrimSpace(score)
-
 	s, err := strconv.Atoi(string(score))
 	if err != nil {
 		return 0, err
@@ -64,11 +62,11 @@ func updateHighScore(score int) error {
 	path := ""
 	switch runtime.GOOS {
 	case "darwin":
-		path = fmt.Sprintf("/Users/%s/Libary/Application Support/ Go Asteroids/high-score.txt", u.Username)
+		path = fmt.Sprintf("/Users/%s/Library/Application Support/Go Asteroids/high-score.txt", u.Username)
 	case "windows":
 		path = fmt.Sprintf("C:\\Users\\%s\\AppData\\high-score.txt", u.Username)
 	default:
-		path = fmt.Sprintf("/home/%s/high-score.txt", u.Username)
+		path = fmt.Sprintf("/users/%s/high-score.txt", u.Username)
 	}
 
 	s := fmt.Sprintf("%d", score)

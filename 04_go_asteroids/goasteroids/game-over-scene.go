@@ -19,12 +19,12 @@ type GameOverScene struct {
 }
 
 func (o *GameOverScene) Draw(screen *ebiten.Image) {
-	// Draw stars
+	// Draw stars.
 	for _, s := range o.stars {
 		s.Draw(screen)
 	}
 
-	// Draw meteors
+	// Draw meteors.
 	for _, m := range o.meteors {
 		m.Draw(screen)
 	}
@@ -37,7 +37,6 @@ func (o *GameOverScene) Draw(screen *ebiten.Image) {
 	}
 	op.ColorScale.ScaleWithColor(color.White)
 	op.GeoM.Translate(ScreenWidth/2, ScreenHeight/2+100)
-
 	text.Draw(screen, textToDraw, &text.GoTextFace{
 		Source: assets.TitleFont,
 		Size:   48,
@@ -60,19 +59,19 @@ func (o *GameOverScene) Draw(screen *ebiten.Image) {
 }
 
 func (o *GameOverScene) Update(state *State) error {
-	// Spawn meteors
+	// Spawn meteors.
 	if len(o.meteors) < 10 {
 		m := NewMeteor(0.25, &GameScene{}, len(o.meteors)-1)
 		o.meteorCount++
 		o.meteors[o.meteorCount] = m
 	}
 
-	// Update meteros
+	// Update meteors.
 	for _, m := range o.meteors {
 		m.Update()
 	}
 
-	// Check to see if spacebar pressed
+	// Check to see if spacebar pressed.
 	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
 		o.game.Reset()
 		state.SceneManager.GoToScene(o.game)

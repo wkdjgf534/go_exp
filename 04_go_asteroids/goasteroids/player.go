@@ -1,7 +1,6 @@
 package goasteroids
 
 import (
-	"go-asteroids/assets"
 	"math"
 	"math/rand"
 	"time"
@@ -9,6 +8,8 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/solarlune/resolv"
+
+	"go-asteroids/assets"
 )
 
 const (
@@ -354,9 +355,9 @@ func (p *Player) isDoneAccelerating() {
 		}
 
 		// Figure out velocity
-		if p.playerVelocity < curAcceleration * 10 {
+		if p.playerVelocity < curAcceleration*10 {
 			// Subtract a bit from speed
-			p.playerVelocity = curAcceleration * 10 - 5.0
+			p.playerVelocity = curAcceleration*10 - 5.0
 		}
 
 		if p.playerVelocity < 0 {

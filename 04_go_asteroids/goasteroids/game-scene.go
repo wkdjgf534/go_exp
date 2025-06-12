@@ -21,56 +21,56 @@ const (
 	meteorSpawnTime      = 100 * time.Millisecond  // How long before meteors spawn.
 	meteorSpeedUpAmount  = 0.1                     // How much do we speed a meteor up when it's timer runs out.
 	meteorSpeedUpTime    = 1000 * time.Millisecond // How long to wait to speed up meteors.
-	cleanUpExplosionTime = 500 * time.Millisecond  // The time to wait for cleaning up explosions.
+	cleanUpExplosionTime = 200 * time.Millisecond  // The time to wait for cleaning up explosions.
 	baseBeatWaitTime     = 1600                    // Base number of milliseconds to wait between beats of background. This is an int because we do math on it.
 	numberOfStars        = 1000                    // The number of stars to display on the background.
-	alienAttackTime      = 3 * time.Second
-	alienSpawnTime       = 12 * time.Second
+	alienAttackTime      = 3 * time.Second         // How long between alien attacks.
+	alienSpawnTime       = 6 * time.Second         // How long between alien spawns.
 	baseAlienVelocity    = 0.5
 )
 
 // GameScene is the overall type for a game scene (e.g. TitleScene, GameScene, etc.).
 type GameScene struct {
-	player               *Player
-	baseVelocity         float64         // The base velocity for items in the game.
-	meteorCount          int             // The counter for meteors.
-	meteorSpawnTimer     *Timer          // The timer for spawning meteors.
-	meteors              map[int]*Meteor // A map of meteors.
-	meteorsForLevel      int             // # of meteors for a level.
-	velocityTimer        *Timer          // The timer used for speeding up meteors.
-	space                *resolv.Space   // The space for all collision objects.
-	lasers               map[int]*Laser  // A map of lasers.
-	laserCount           int             // A count of lasers currently in play; used as index for map lasers.
-	score                int             // Current score.
-	explosionSmallSprite *ebiten.Image   // A small explosion object.
-	explosionSprite      *ebiten.Image   // A large explosion object.
-	explosionFrames      []*ebiten.Image // The frames for explosion animation.
-	cleanUpTimer         *Timer          // Timer to clean up objects.
-	playerIsDead         bool            // Is the player dead.
-	audioContex          *audio.Context  // The context used for our audio players.
-	thrustPlayer         *audio.Player   // The audio player for thrust sound.
-	exhaust              *Exhaust        // The object for exhaust (while accelerating).
-	laserOnePlayer       *audio.Player   // The audio player for laser.
-	laserTwoPlayer       *audio.Player
-	laserThreePlayer     *audio.Player
-	explosionPlayer      *audio.Player // The explosion sound player.
-	beatOnePlayer        *audio.Player // The audio player for beat one (background sounds).
-	beatTwoPlayer        *audio.Player // The audio player for beat two sound (background sounds).
-	beatTimer            *Timer        // The time for playing beats one and two.
-	beatWaitTime         int           // The time to wait between beats. Reduced over time in each level.
-	playBeatOne          bool          // Should we play beat one? Yes, if true, otherwise play beat two.
-	stars                []*Star       // The stars fr background.
-	currentLevel         int           // The current level the player is on.
-	shield               *Shield       // The player's shield.
-	shieldsUpPlayer      *audio.Player // The player's shield sound.
-	alienAttackTimer     *Timer
-	alienCount           int
-	alienLaserCount      int
-	alienLaserPlayer     *audio.Player
-	alienLasers          map[int]*AlienLaser
-	alienSoundPlayer     *audio.Player
-	alienSpawnTimer      *Timer
-	aliens               map[int]*Alien
+	player               *Player             // The player.
+	baseVelocity         float64             // The base velocity for items in the game.
+	meteorCount          int                 // The counter for meteors.
+	meteorSpawnTimer     *Timer              // The timer for spawning meteors.
+	meteors              map[int]*Meteor     // A map of meteors.
+	meteorsForLevel      int                 // # of meteors for a level.
+	velocityTimer        *Timer              // The timer used for speeding up meteors.
+	space                *resolv.Space       // The space for all collision objects.
+	lasers               map[int]*Laser      // A map of lasers.
+	laserCount           int                 // A count of lasers currently in play; used as index for map lasers.
+	score                int                 // Current score.
+	explosionSmallSprite *ebiten.Image       // A small explosion object.
+	explosionSprite      *ebiten.Image       // A large explosion object.
+	explosionFrames      []*ebiten.Image     // The frames for explosion animation.
+	cleanUpTimer         *Timer              // Timer to clean up objects.
+	playerIsDead         bool                // Is the player dead.
+	audioContext         *audio.Context      // The context used for our audio players.
+	thrustPlayer         *audio.Player       // The audio player for thrust sound.
+	exhaust              *Exhaust            // The object for exhaust (while accelerating).
+	laserOnePlayer       *audio.Player       // The audio player for laser 1.
+	laserThreePlayer     *audio.Player       // The audio player for laser 2.
+	laserTwoPlayer       *audio.Player       // The audio player for laser 3.
+	explosionPlayer      *audio.Player       // The explosion sound player.
+	beatOnePlayer        *audio.Player       // The audio player for beat one (background sounds).
+	beatTwoPlayer        *audio.Player       // The audio player for beat two sound (background sounds).
+	beatTimer            *Timer              // The time for playing beats one and two.
+	beatWaitTime         int                 // The time to wait between beats. Reduced over time in each level.
+	playBeatOne          bool                // Should we play beat one? Yes, if true, otherwise play beat two.
+	stars                []*Star             // The stars for background.
+	currentLevel         int                 // The current level the player is on.
+	shield               *Shield             // The player's shield.
+	shieldsUpPlayer      *audio.Player       // The player for the shields up sound.
+	alienAttackTimer     *Timer              // The timer for allowing aliens to attack.
+	alienCount           int                 // The count of aliens. We only allow one, but might change that.
+	alienLaserCount      int                 // A count of alien lasers in play; used as index for map alienLasers.
+	alienLaserPlayer     *audio.Player       // The audio player for alien laser sounds.
+	alienLasers          map[int]*AlienLaser // A map of alien lasers currently active.
+	alienSoundPlayer     *audio.Player       // The audio player for our alien sounds.
+	alienSpawnTimer      *Timer              // The timer used to spawn aliens.
+	aliens               map[int]*Alien      // A map of aliens.
 }
 
 // NewGameScene is a factory method for producing a new game. It's called once,
@@ -105,36 +105,35 @@ func NewGameScene() *GameScene {
 
 	g.explosionFrames = assets.Explosion
 
-	// Load audio
-	g.audioContex = audio.NewContext(48000)
-	thrustPlayer, _ := g.audioContex.NewPlayer(assets.ThrustSound)
+	// Load Audio.
+	g.audioContext = audio.NewContext(48000)
+	thrustPlayer, _ := g.audioContext.NewPlayer(assets.ThrustSound)
 	g.thrustPlayer = thrustPlayer
 
-	laserOnePlayer, _ := g.audioContex.NewPlayer(assets.LaserOneSound)
+	laserOnePlayer, _ := g.audioContext.NewPlayer(assets.LaserOneSound)
 	g.laserOnePlayer = laserOnePlayer
 
-	laserTwoPlayer, _ := g.audioContex.NewPlayer(assets.LaserTwoSound)
+	laserTwoPlayer, _ := g.audioContext.NewPlayer(assets.LaserTwoSound)
 	g.laserTwoPlayer = laserTwoPlayer
 
-	laserThreePlayer, _ := g.audioContex.NewPlayer(assets.LaserThreeSound)
+	laserThreePlayer, _ := g.audioContext.NewPlayer(assets.LaserThreeSound)
 	g.laserThreePlayer = laserThreePlayer
 
-	explosionPlayer, _ := g.audioContex.NewPlayer(assets.ExplosionSound)
+	explosionPlayer, _ := g.audioContext.NewPlayer(assets.ExplosionSound)
 	g.explosionPlayer = explosionPlayer
 
-	beatOnePlayer, _ := g.audioContex.NewPlayer(assets.BeatOneSound)
+	beatOnePlayer, _ := g.audioContext.NewPlayer(assets.BeatOneSound)
+	beatTwoPlayer, _ := g.audioContext.NewPlayer(assets.BeatTwoSound)
 	g.beatOnePlayer = beatOnePlayer
-
-	beatTwoPlayer, _ := g.audioContex.NewPlayer(assets.BeatTwoSound)
 	g.beatTwoPlayer = beatTwoPlayer
 
-	shieldsUpPlayer, _ := g.audioContex.NewPlayer(assets.ShieldSound)
+	shieldsUpPlayer, _ := g.audioContext.NewPlayer(assets.ShieldSound)
 	g.shieldsUpPlayer = shieldsUpPlayer
 
-	alienLaserPlayer, _ := g.audioContex.NewPlayer(assets.AlienLaserSound)
+	alienLaserPlayer, _ := g.audioContext.NewPlayer(assets.AlienLaserSound)
 	g.alienLaserPlayer = alienLaserPlayer
 
-	alienSoundPlayer, _ := g.audioContex.NewPlayer(assets.AlienSound)
+	alienSoundPlayer, _ := g.audioContext.NewPlayer(assets.AlienSound)
 	alienSoundPlayer.SetVolume(0.5)
 	g.alienSoundPlayer = alienSoundPlayer
 
@@ -143,59 +142,89 @@ func NewGameScene() *GameScene {
 
 // Update updates all game scene elements for the next draw. It's called once per tick.
 func (g *GameScene) Update(state *State) error {
+	// Update player.
 	g.player.Update()
 
+	// Update exhaust.
 	g.updateExhaust()
 
+	// Update shield.
 	g.updateShield()
 
+	// Check to see if the player is dying.
 	g.isPlayerDying()
 
+	// Check to see if the player is dead.
 	g.isPlayerDead(state)
 
-	//g.spawnMeteors()
+	// Spawn meteors.
+	g.spawnMeteors()
 
+	// Spawn aliens.
 	g.spawnAliens()
 
+	// Update aliens.
 	for _, a := range g.aliens {
 		a.Update()
 	}
 
+	// Let aliens attack (and play alien sound).
 	g.letAliensAttack()
 
+	// Update alien lasers.
 	for _, al := range g.alienLasers {
 		al.Update()
 	}
 
+	// Update meteors.
 	for _, m := range g.meteors {
 		m.Update()
 	}
 
+	// Update player lasers.
 	for _, l := range g.lasers {
 		l.Update()
 	}
 
+	// Speed up meteors over time.
 	g.speedUpMeteors()
 
+	// Check to see if the player collided with a meteor.
 	g.isPlayerCollidingWithMeteor()
 
+	// Check to see if player laser hit meteor.
 	g.isMeteorHitByPlayerLaser()
 
+	// Check for player collision with alien.
+	g.isPlayerCollidingWithAlien()
+
+	// Check for alien laser collision with player.
+	g.isPlayerHitByAlienLaser()
+
+	// Check for player laser collision with alien.
+	g.isAlienHitByPlayerLaser()
+
+	// Get rid of offscreen meteors & aliens.
 	g.cleanUpMeteorsAndAliens()
 
+	// Play background music.
 	g.beatSound()
 
+	// Is the level complete?
 	g.isLevelComplete(state)
 
-	g.removeOffScreenAliens()
+	// Clean up offscreen aliens.
+	g.removeOffscreenAliens()
 
-	g.removeOffScreenLasers()
+	// Clean up offscreen lasers.
+	g.removeOffscreenLasers()
 
 	return nil
 }
 
 // Draw draws all game scene elements to the screen. It's called once per frame.
 func (g *GameScene) Draw(screen *ebiten.Image) {
+
 	// Draw stars.
 	for _, s := range g.stars {
 		s.Draw(screen)
@@ -204,19 +233,14 @@ func (g *GameScene) Draw(screen *ebiten.Image) {
 	// Draw player.
 	g.player.Draw(screen)
 
-	// Draw exhaust.
+	// Draw exhaust, but only if it's not nil.
 	if g.exhaust != nil {
 		g.exhaust.Draw(screen)
 	}
 
-	// Draw shield
+	// Draw shield, but only if it's not nil.
 	if g.shield != nil {
 		g.shield.Draw(screen)
-	}
-
-	// Draw hyperspace indicator
-	if g.player.hyperSpaceTimer == nil || g.player.hyperSpaceTimer.IsReady() {
-		g.player.hyperspaceIndicator.Draw(screen)
 	}
 
 	// Draw meteors.
@@ -236,11 +260,16 @@ func (g *GameScene) Draw(screen *ebiten.Image) {
 		}
 	}
 
-	// Draw shield indicator.
+	// Draw shield indicators.
 	if len(g.player.shieldIndicators) > 0 {
 		for _, x := range g.player.shieldIndicators {
 			x.Draw(screen)
 		}
+	}
+
+	// Draw hyperspace indicator.
+	if g.player.hyperSpaceTimer == nil || g.player.hyperSpaceTimer.IsReady() {
+		g.player.hyperspaceIndicator.Draw(screen)
 	}
 
 	// Draw aliens.
@@ -253,7 +282,7 @@ func (g *GameScene) Draw(screen *ebiten.Image) {
 		al.Draw(screen)
 	}
 
-	// Updated and draw score.
+	// Update and draw score.
 	textToDraw := fmt.Sprintf("%06d", g.score)
 	op := &text.DrawOptions{
 		LayoutOptions: text.LayoutOptions{
@@ -267,7 +296,7 @@ func (g *GameScene) Draw(screen *ebiten.Image) {
 		Size:   24,
 	}, op)
 
-	// Updated and draw high score.
+	// Update and draw high score.
 	if g.score >= highScore {
 		highScore = g.score
 	}
@@ -285,7 +314,7 @@ func (g *GameScene) Draw(screen *ebiten.Image) {
 		Size:   16,
 	}, op)
 
-	// Updated and draw current level.
+	// Update and draw current level.
 	textToDraw = fmt.Sprintf("LEVEL %d", g.currentLevel)
 	op = &text.DrawOptions{
 		LayoutOptions: text.LayoutOptions{
@@ -301,8 +330,54 @@ func (g *GameScene) Draw(screen *ebiten.Image) {
 }
 
 // Layout is necessary to satisfy interface requirements from ebiten.
-func (g *GameScene) Layout(outsideWidth, outsideHeight int) (ScreenWidth, ScreenHeight int) {
+func (g *GameScene) Layout(outsideWidth, outsideHeight int) (ScreeWidth, ScreenHeight int) {
 	return outsideWidth, outsideHeight
+}
+
+func (g *GameScene) isPlayerCollidingWithAlien() {
+	for _, a := range g.aliens {
+		if a.alienObj.IsIntersecting(g.player.playerObj) {
+			if !a.game.player.isShielded {
+				if !a.game.explosionPlayer.IsPlaying() {
+					_ = a.game.explosionPlayer.Rewind()
+					a.game.explosionPlayer.Play()
+				}
+				a.game.player.isDying = true
+			}
+		}
+	}
+}
+
+func (g *GameScene) isPlayerHitByAlienLaser() {
+	for _, l := range g.alienLasers {
+		if l.laserObj.IsIntersecting(g.player.playerObj) {
+			if !g.player.isShielded {
+				if !g.explosionPlayer.IsPlaying() {
+					_ = g.explosionPlayer.Rewind()
+					g.explosionPlayer.Play()
+				}
+				g.player.isDying = true
+			}
+		}
+	}
+}
+
+func (g *GameScene) isAlienHitByPlayerLaser() {
+	for _, a := range g.aliens {
+		for _, l := range g.lasers {
+			if a.alienObj.IsIntersecting(l.laserObj) {
+				laserData := l.laserObj.Data().(*ObjectData)
+				delete(g.alienLasers, laserData.index)
+				g.space.Remove(l.laserObj)
+				a.sprite = g.explosionSprite
+				g.score = g.score + 50
+				if !g.explosionPlayer.IsPlaying() {
+					_ = g.explosionPlayer.Rewind()
+					g.explosionPlayer.Play()
+				}
+			}
+		}
+	}
 }
 
 func (g *GameScene) letAliensAttack() {
@@ -337,6 +412,7 @@ func (g *GameScene) letAliensAttack() {
 				}
 
 				r := degreesRadian
+
 				offsetX := float64(a.sprite.Bounds().Dx() - int(halfW))
 				offsetY := float64(a.sprite.Bounds().Dy() - int(halfH))
 
@@ -348,7 +424,6 @@ func (g *GameScene) letAliensAttack() {
 				laser := NewAlienLaser(spawnPos, r)
 				g.alienLaserCount++
 				g.alienLasers[g.alienLaserCount] = laser
-
 				if !g.alienLaserPlayer.IsPlaying() {
 					_ = g.alienLaserPlayer.Rewind()
 					g.alienLaserPlayer.Play()
@@ -358,16 +433,14 @@ func (g *GameScene) letAliensAttack() {
 	}
 }
 
-func (g *GameScene) removeOffScreenLasers() {
-	// Player's laser beams
+func (g *GameScene) removeOffscreenLasers() {
 	for i, l := range g.lasers {
 		if l.position.X > ScreenWidth+200 || l.position.Y > ScreenHeight+200 || l.position.X < -200 || l.position.Y < -200 {
 			g.space.Remove(l.laserObj)
-			delete(g.aliens, i)
+			delete(g.lasers, i)
 		}
 	}
 
-	// Enemies' laser beams
 	for i, l := range g.alienLasers {
 		if l.position.X > ScreenWidth+200 || l.position.Y > ScreenHeight+200 || l.position.X < -200 || l.position.Y < -200 {
 			g.space.Remove(l.laserObj)
@@ -378,7 +451,6 @@ func (g *GameScene) removeOffScreenLasers() {
 
 func (g *GameScene) spawnAliens() {
 	g.alienSpawnTimer.Update()
-
 	if len(g.aliens) == 0 {
 		if g.alienSpawnTimer.IsReady() {
 			g.alienSpawnTimer.Reset()
@@ -393,7 +465,7 @@ func (g *GameScene) spawnAliens() {
 	}
 }
 
-func (g *GameScene) removeOffScreenAliens() {
+func (g *GameScene) removeOffscreenAliens() {
 	for i, a := range g.aliens {
 		if a.position.X > ScreenWidth+200 || a.position.Y > ScreenHeight+200 || a.position.X < -200 || a.position.Y < -200 {
 			g.space.Remove(a.alienObj)
@@ -408,11 +480,15 @@ func (g *GameScene) updateShield() {
 	}
 }
 
+// isLevelComplete checks to see if the level is complete (all meteors destroyed).
 func (g *GameScene) isLevelComplete(state *State) {
 	if g.meteorCount >= g.meteorsForLevel && len(g.meteors) == 0 {
+		// Level finished, so reset meteor velocity.
 		g.baseVelocity = baseMeteorVelocity
+		// Increase current level by one.
 		g.currentLevel++
 
+		// If we've done 5 levels, add a life.
 		if g.currentLevel%5 == 0 {
 			if g.player.livesRemaining < 6 {
 				g.player.livesRemaining++
@@ -422,7 +498,10 @@ func (g *GameScene) isLevelComplete(state *State) {
 			}
 		}
 
+		// Set the beat time to slowest.
 		g.beatWaitTime = baseBeatWaitTime
+
+		// Switch scenes.
 		state.SceneManager.GoToScene(&LevelStartsScene{
 			game:           g,
 			nextLevelTimer: NewTimer(time.Second * 2),
@@ -443,10 +522,9 @@ func (g *GameScene) beatSound() {
 			g.beatTwoPlayer.Play()
 			g.beatTimer.Reset()
 		}
-
 		g.playBeatOne = !g.playBeatOne
 
-		// Speed Up the timer
+		// speed up the timer
 		if g.beatWaitTime > 400 {
 			g.beatWaitTime = g.beatWaitTime - 25
 			g.beatTimer = NewTimer(time.Millisecond * time.Duration(g.beatWaitTime))
@@ -475,10 +553,10 @@ func (g *GameScene) isMeteorHitByPlayerLaser() {
 					}
 				} else {
 					// Large meteor
-					// Gets the position durring the hit
 					oldPos := m.position
 
 					m.sprite = g.explosionSprite
+
 					g.score++
 
 					if !g.explosionPlayer.IsPlaying() {
@@ -489,11 +567,7 @@ func (g *GameScene) isMeteorHitByPlayerLaser() {
 					numToSpawn := rand.Intn(numberOfSmallMeteorsFromLargeMeteor)
 					for i := 0; i < numToSpawn; i++ {
 						meteor := NewSmallMeteor(baseMeteorVelocity, g, len(m.game.meteors)-1)
-						meteor.position = Vector{
-							oldPos.X + float64(rand.Intn(100-50)+50),
-							oldPos.Y + float64(rand.Intn(100-50)+50),
-						}
-
+						meteor.position = Vector{oldPos.X + float64(rand.Intn(100-50)+50), oldPos.Y + float64(rand.Intn(100-50)+50)}
 						meteor.meteorObj.SetPosition(meteor.position.X, meteor.position.Y)
 						g.space.Add(meteor.meteorObj)
 						g.meteorCount++
@@ -508,7 +582,6 @@ func (g *GameScene) isMeteorHitByPlayerLaser() {
 func (g *GameScene) isPlayerDying() {
 	if g.player.isDying {
 		g.player.dyingTimer.Update()
-
 		if g.player.dyingTimer.IsReady() {
 			g.player.dyingTimer.Reset()
 			g.player.dyingCounter++
@@ -552,7 +625,7 @@ func (g *GameScene) isPlayerDead(state *State) {
 			shieldIndicatorSlice := g.player.shieldIndicators
 
 			g.Reset()
-			// After reset, restore previous condition
+
 			g.player.livesRemaining = livesRemaining
 			g.score = score
 			g.player.lifeIndicators = lifeSlice
@@ -570,7 +643,7 @@ func (g *GameScene) spawnMeteors() {
 		g.meteorSpawnTimer.Reset()
 		if len(g.meteors) < g.meteorsForLevel && g.meteorCount < g.meteorsForLevel {
 			m := NewMeteor(g.baseVelocity, g, len(g.meteors)-1)
-			g.space.Add(m.meteorObj) // Adds meteors to resolv space
+			g.space.Add(m.meteorObj)
 			g.meteorCount++
 			g.meteors[g.meteorCount] = m
 		}
@@ -598,7 +671,7 @@ func (g *GameScene) isPlayerCollidingWithMeteor() {
 				}
 				break
 			} else {
-				// Bounce the meteor
+				// Bounce the meteor.
 				g.bounceMeteor(m)
 			}
 		}
@@ -611,7 +684,7 @@ func (g *GameScene) bounceMeteor(m *Meteor) {
 		Y: (ScreenHeight/2 - m.position.Y) * -1,
 	}
 	normalizedDirection := direction.Normalize()
-	velocity := g.baseVelocity * 1.5
+	velocity := g.baseVelocity
 
 	movement := Vector{
 		X: normalizedDirection.X * velocity,
@@ -631,6 +704,12 @@ func (g *GameScene) cleanUpMeteorsAndAliens() {
 			}
 		}
 
+		for i, a := range g.aliens {
+			if a.sprite == g.explosionSprite {
+				delete(g.aliens, i)
+				g.space.Remove(a.alienObj)
+			}
+		}
 		g.cleanUpTimer.Reset()
 	}
 }
@@ -652,4 +731,8 @@ func (g *GameScene) Reset() {
 	g.stars = GenerateStars(numberOfStars)
 	g.player.shieldsRemaining = numberOfShields
 	g.player.isShielded = false
+	g.aliens = make(map[int]*Alien)
+	g.alienCount = 0
+	g.alienLasers = make(map[int]*AlienLaser)
+	g.alienLaserCount = 0
 }

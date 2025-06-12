@@ -8,7 +8,7 @@ import (
 	"go-asteroids/assets"
 )
 
-const exhaustSpawnOffset = -50 // How far from the player sprite the exhaust should appear.
+const exhaustSpawnOffset = -50.0 // How far from the player sprite the exhaust should appear.
 
 // Exhaust is the type for exhaust.
 type Exhaust struct {

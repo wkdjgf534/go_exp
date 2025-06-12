@@ -10,6 +10,7 @@ import (
 	"go-asteroids/assets"
 )
 
+// Alien is the type for all alien enemies.
 type Alien struct {
 	game          *GameScene
 	sprite        *ebiten.Image
@@ -20,16 +21,19 @@ type Alien struct {
 	isIntelligent bool
 }
 
+// NewAlien creates a new alien object.
 func NewAlien(baseVelocity float64, g *GameScene) *Alien {
 	var alien Alien
 
+	// Get a random alien type (a number from 0-2).
 	alienType := rand.Intn(3)
 
+	// Set a random sprite from those available to us.
 	sprite := assets.AlienSprites[rand.Intn(len(assets.AlienSprites))]
 
 	switch alienType {
 	case 0:
-		// Stupid alien that comes in from the right and shoots in random directions
+		// Stupid alien that comes in from the right and shoots in random directions.
 		x := float64(ScreenWidth + 100)
 		y := float64(rand.Intn(ScreenHeight-100) + 100)
 
@@ -59,7 +63,7 @@ func NewAlien(baseVelocity float64, g *GameScene) *Alien {
 		alien.alienObj.SetPosition(pos.X, pos.Y)
 
 	case 1:
-		// Stupid alien that comes in from the left and shoots in random directions
+		// Stupid alien that comes in from the left and shoots in random directions.
 		x := -100.0
 		y := float64(rand.Intn(ScreenHeight-100) + 100)
 
@@ -89,20 +93,24 @@ func NewAlien(baseVelocity float64, g *GameScene) *Alien {
 		alien.alienObj.SetPosition(pos.X, pos.Y)
 
 	case 2:
-		// Smart alien
+		// Smart alien that comes in from random position and always shoots at player.
+		// Get coordinates of middle of screen.
 		middle := Vector{
 			X: ScreenWidth / 2,
 			Y: ScreenHeight / 2,
 		}
 
+		// Calculate the angle we are coming in from.
 		angle := rand.Float64() * 2 * math.Pi
 		r := ScreenWidth / 2.0
 
+		// Create the position.
 		pos := Vector{
 			X: middle.X + math.Cos(angle)*r,
 			Y: middle.Y + math.Sin(angle)*r,
 		}
 
+		// Determine our velocity.
 		velocity := baseVelocity + rand.Float64()*1.5
 		target := g.player.position
 
@@ -110,7 +118,6 @@ func NewAlien(baseVelocity float64, g *GameScene) *Alien {
 			X: target.X - pos.X,
 			Y: target.Y - pos.Y,
 		}
-
 		normalizedDirection := direction.Normalize()
 
 		movement := Vector{
@@ -147,12 +154,11 @@ func (a *Alien) Update() {
 
 func (a *Alien) Draw(screen *ebiten.Image) {
 	bounds := a.sprite.Bounds()
-	halfW := float64(bounds.Dx() / 2)
-	halfH := float64(bounds.Dy() / 2)
+	halfW := float64(bounds.Dx()) / 2
+	halfH := float64(bounds.Dy()) / 2
 
 	op := &ebiten.DrawImageOptions{}
 	op.GeoM.Translate(-halfW, -halfH)
 	op.GeoM.Translate(a.position.X, a.position.Y)
-
 	screen.DrawImage(a.sprite, op)
 }
