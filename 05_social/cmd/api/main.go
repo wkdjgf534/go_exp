@@ -11,6 +11,8 @@ import (
 	"social/internal/store"
 )
 
+const version = "0.0.1"
+
 func main() {
 	err := godotenv.Load(".env")
 	if err != nil {
@@ -35,6 +37,7 @@ func main() {
 			maxIdleConns: maxIdleConns,
 			maxIdleTime:  os.Getenv("DB_MAX_IDLE_TIME"),
 		},
+		env: os.Getenv("ENV"),
 	}
 
 	db, err := db.New(
