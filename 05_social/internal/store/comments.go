@@ -19,7 +19,7 @@ type CommentStore struct {
 	db *sql.DB
 }
 
-func (s *CommentStore) GetByPostID(ctx context.Context, postID int64) ([]Comment, error) {
+func (s *CommentStore) GetByPostID(ctx context.Context, id int64) ([]Comment, error) {
 	query := `
 		SELECT c.id, c.post_id, c.user_id, c.content, c.created_at, users.username, users.id  FROM comments c
 		JOIN users on users.id = c.user_id
@@ -30,7 +30,7 @@ func (s *CommentStore) GetByPostID(ctx context.Context, postID int64) ([]Comment
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	rows, err := s.db.QueryContext(ctx, query, postID)
+	rows, err := s.db.QueryContext(ctx, query, id)
 	if err != nil {
 		return nil, err
 	}
