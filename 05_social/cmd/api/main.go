@@ -10,6 +10,7 @@ import (
 	"go.uber.org/zap"
 
 	"social/internal/db"
+	"social/internal/mailer"
 	"social/internal/store"
 )
 
@@ -49,8 +50,9 @@ func main() {
 	}
 
 	cfg := config{
-		addr:   os.Getenv("ADDR"),
-		apiURL: os.Getenv("EXTERNAL_URL"),
+		addr:        os.Getenv("ADDR"),
+		apiURL:      os.Getenv("EXTERNAL_URL"),
+		frontendURL: os.Getenv("FRONTEND_URL"),
 		db: dbConfig{
 			addr:         os.Getenv("DB_ADDR"),
 			maxOpenConns: maxOpenConns,
@@ -59,7 +61,11 @@ func main() {
 		},
 		env: os.Getenv("ENV"),
 		mail: mailConfig{
-			exp: time.Hour * 24 * 3, // 3 days
+			exp:       time.Hour * 24 * 3, // 3 days
+			fromEmail: os.Getenv("FROM_EMAIL"),
+			sendGrid: sendGridConfig{
+				apiKey: os.Getenv("SENDGRID_API_KEY"),
+			},
 		},
 	}
 
@@ -83,10 +89,13 @@ func main() {
 
 	store := store.NewStorage(db)
 
+	mailer := mailer.NewSendgrid(cfg.mail.sendGrid.apiKey, cfg.mail.fromEmail)
+
 	app := &application{
 		config: cfg,
 		store:  store,
 		logger: logger,
+		mailer: mailer,
 	}
 
 	mux := app.mount()

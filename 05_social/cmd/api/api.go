@@ -11,6 +11,7 @@ import (
 	"go.uber.org/zap"
 
 	"social/docs" // This is require to generate swagger docs
+	"social/internal/mailer"
 	"social/internal/store"
 )
 
@@ -18,14 +19,16 @@ type application struct {
 	config config
 	store  store.Storage
 	logger *zap.SugaredLogger
+	mailer mailer.Client
 }
 
 type config struct {
-	addr   string
-	apiURL string
-	db     dbConfig
-	env    string
-	mail   mailConfig
+	addr        string
+	apiURL      string
+	db          dbConfig
+	env         string
+	mail        mailConfig
+	frontendURL string
 }
 
 type dbConfig struct {
@@ -36,7 +39,13 @@ type dbConfig struct {
 }
 
 type mailConfig struct {
-	exp time.Duration
+	sendGrid  sendGridConfig
+	fromEmail string
+	exp       time.Duration
+}
+
+type sendGridConfig struct {
+	apiKey string
 }
 
 func (app *application) mount() http.Handler {
