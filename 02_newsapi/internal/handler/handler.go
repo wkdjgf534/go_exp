@@ -1,10 +1,47 @@
 package handler
 
-import "net/http"
+import (
+	"encoding/json"
+	"net/http"
+	"newsapi/internal/logger"
 
-func PostNews() http.HandlerFunc {
+	"github.com/google/uuid"
+)
+
+type NewsStorer interface {
+	Create(NewsPostReqBody) (NewsPostReqBody, error)
+	FindByID(uuid.UUID) (NewsPostReqBody, error)
+	FindAll() ([]NewsPostReqBody, error)
+	DeleteByID(uuid.UUID) error
+	UpdateByID(NewsPostReqBody) error
+}
+
+func PostNews(ns NewsStorer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusNotImplemented)
+		logger := logger.FromContext(r.Context())
+		logger.Info("request received")
+
+		var newsRequestBody NewsPostReqBody
+		if err := json.NewDecoder(r.Body).Decode(&newsRequestBody); err != nil {
+			logger.Error("failed to decode the request", "error", err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		if err := newsRequestBody.Validate(); err != nil {
+			logger.Error("request validation failed", "error", err)
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
+		if _, err := ns.Create(newsRequestBody); err != nil {
+			logger.Error("error creating news", "error", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusCreated)
 	}
 }
 
