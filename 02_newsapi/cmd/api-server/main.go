@@ -3,18 +3,23 @@ package main
 import (
 	"log/slog"
 	"net/http"
-	"newsapi/internal/router"
 	"os"
+
+	"newsapi/internal/logger"
+	"newsapi/internal/router"
+	"newsapi/internal/store"
 )
 
 func main() {
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{AddSource: true}))
+	log := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{AddSource: true}))
 
-	logger.Info("server starting on port 8080")
+	r := router.New(store.New())
+	wrappedRouter := logger.AddLoggerMid(log, logger.LoggerMid(r))
 
-	r := router.New()
-	if err := http.ListenAndServe(":8080", r); err != nil {
-		logger.Error("failed to start server", "error", err)
+	log.Info("server starting on port 8080")
+
+	if err := http.ListenAndServe(":8080", wrappedRouter); err != nil {
+		log.Error("failed to start server", "error", err)
 	}
 
 }
