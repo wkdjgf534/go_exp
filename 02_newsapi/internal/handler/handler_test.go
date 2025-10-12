@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"newsapi/internal/handler"
+	"newsapi/internal/store"
 	"strings"
 	"testing"
 
@@ -298,7 +299,7 @@ type mockNewsStore struct {
 	errState bool
 }
 
-func (m mockNewsStore) Create(_ handler.NewsPostReqBody) (news handler.NewsPostReqBody, err error) {
+func (m mockNewsStore) Create(_ store.News) (news store.News, err error) {
 	if m.errState {
 		return news, errors.New("some error")
 	}
@@ -306,7 +307,7 @@ func (m mockNewsStore) Create(_ handler.NewsPostReqBody) (news handler.NewsPostR
 	return news, nil
 }
 
-func (m mockNewsStore) FindByID(_ uuid.UUID) (news handler.NewsPostReqBody, err error) {
+func (m mockNewsStore) FindByID(_ uuid.UUID) (news store.News, err error) {
 	if m.errState {
 		return news, errors.New("some error")
 	}
@@ -314,7 +315,7 @@ func (m mockNewsStore) FindByID(_ uuid.UUID) (news handler.NewsPostReqBody, err 
 	return news, nil
 }
 
-func (m mockNewsStore) FindAll() (news []handler.NewsPostReqBody, err error) {
+func (m mockNewsStore) FindAll() (news []store.News, err error) {
 	if m.errState {
 		return news, errors.New("some error")
 	}
@@ -330,7 +331,7 @@ func (m mockNewsStore) DeleteByID(_ uuid.UUID) error {
 	return nil
 }
 
-func (m mockNewsStore) UpdateByID(_ handler.NewsPostReqBody) error {
+func (m mockNewsStore) UpdateByID(_ store.News) error {
 	if m.errState {
 		return errors.New("some error")
 	}

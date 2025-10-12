@@ -3,17 +3,19 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
-	"newsapi/internal/logger"
 
 	"github.com/google/uuid"
+
+	"newsapi/internal/logger"
+	"newsapi/internal/store"
 )
 
 type NewsStorer interface {
-	Create(NewsPostReqBody) (NewsPostReqBody, error)
-	FindByID(uuid.UUID) (NewsPostReqBody, error)
-	FindAll() ([]NewsPostReqBody, error)
+	Create(store.News) (store.News, error)
+	FindByID(uuid.UUID) (store.News, error)
+	FindAll() ([]store.News, error)
 	DeleteByID(uuid.UUID) error
-	UpdateByID(NewsPostReqBody) error
+	UpdateByID(store.News) error
 }
 
 func PostNews(ns NewsStorer) http.HandlerFunc {
@@ -28,14 +30,15 @@ func PostNews(ns NewsStorer) http.HandlerFunc {
 			return
 		}
 
-		if err := newsRequestBody.Validate(); err != nil {
+		n, err := newsRequestBody.Validate()
+		if err != nil {
 			logger.Error("request validation failed", "error", err)
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(err.Error()))
 			return
 		}
 
-		if _, err := ns.Create(newsRequestBody); err != nil {
+		if _, err := ns.Create(n); err != nil {
 			logger.Error("error creating news", "error", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return
@@ -104,14 +107,15 @@ func UpdateNewsByID(ns NewsStorer) http.HandlerFunc {
 			return
 		}
 
-		if err := newsRequestBody.Validate(); err != nil {
+		n, err := newsRequestBody.Validate()
+		if err != nil {
 			logger.Error("request validation failed", "error", err)
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(err.Error()))
 			return
 		}
 
-		if err := ns.UpdateByID(newsRequestBody); err != nil {
+		if err := ns.UpdateByID(n); err != nil {
 			logger.Error("error updating news", "error", err)
 			w.WriteHeader(http.StatusInternalServerError)
 			return

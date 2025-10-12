@@ -7,12 +7,13 @@ import (
 
 	"newsapi/internal/logger"
 	"newsapi/internal/router"
+	"newsapi/internal/store"
 )
 
 func main() {
 	log := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{AddSource: true}))
 
-	r := router.New(nil)
+	r := router.New(store.New())
 	wrappedRouter := logger.AddLoggerMid(log, logger.LoggerMid(r))
 
 	log.Info("server starting on port 8080")
