@@ -49,3 +49,7 @@ func (n NewsPostReqBody) Validate() (errs error) {
 	return errs
 
 }
+
+type allNewsResponse struct {
+	News []NewsPostReqBody `json:"news"`
+}
