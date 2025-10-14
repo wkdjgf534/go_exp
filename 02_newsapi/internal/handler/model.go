@@ -6,9 +6,9 @@ import (
 	"net/url"
 	"time"
 
-	"newsapi/internal/store"
-
 	"github.com/google/uuid"
+
+	"newsapi/internal/store"
 )
 
 type NewsPostReqBody struct {

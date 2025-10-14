@@ -3,9 +3,10 @@ package logger_test
 import (
 	"context"
 	"log/slog"
-	"newsapi/internal/logger"
 	"os"
 	"testing"
+
+	"newsapi/internal/logger"
 )
 
 func Test_CtxWithLogger(t *testing.T) {

@@ -5,12 +5,13 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"newsapi/internal/handler"
-	"newsapi/internal/store"
 	"strings"
 	"testing"
 
 	"github.com/google/uuid"
+
+	"newsapi/internal/handler"
+	"newsapi/internal/store"
 )
 
 func Test_PostNews(t *testing.T) {
