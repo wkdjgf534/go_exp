@@ -6,9 +6,9 @@ import (
 	"net/url"
 	"time"
 
-	"newsapi/internal/store"
-
 	"github.com/google/uuid"
+
+	"newsapi/internal/store"
 )
 
 type NewsPostReqBody struct {
@@ -42,6 +42,10 @@ func (n NewsPostReqBody) Validate() (news store.News, errs error) {
 	t, err := time.Parse(time.RFC3339, n.CreatedAt)
 	if err != nil {
 		errs = errors.Join(errs, err)
+	}
+
+	if n.Source == "" {
+		errs = errors.Join(errs, fmt.Errorf("source is empty: %s", n.Source))
 	}
 
 	url, err := url.Parse(n.Source)
