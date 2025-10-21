@@ -1,4 +1,4 @@
-package news
+package postgres
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ import (
 
 type Config struct {
 	Host        string
-	DBNames     string
+	DBName      string
 	Password    string
 	Port        string
 	Debug       bool
@@ -25,7 +25,7 @@ type Config struct {
 func (c *Config) conn() string {
 	return fmt.Sprintf(
 		"dbname=%s host=%s port=%s user=%s password=%s sslmode=%s",
-		c.DBNames,
+		c.DBName,
 		c.Host,
 		c.Port,
 		c.User,
