@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"testing"
 	"time"
 
 	"github.com/docker/go-connections/nat"
@@ -12,8 +13,31 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 	"github.com/uptrace/bun"
 
+	"newsapi/internal/news"
 	"newsapi/internal/postgres"
 )
+
+var db *bun.DB
+
+func TestMain(m *testing.M) {
+	ctx := context.Background()
+	pdb, cf, err := createTestDB(ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	db = pdb
+	code := m.Run()
+	if err := cf(ctx); err != nil {
+		panic(err)
+	}
+
+	os.Exit(code)
+}
+
+func TestStore_Create(t *testing.T) {
+	news.NewStore(db)
+}
 
 func createTestContainer(ctx context.Context) (ctr *pgtc.PostgresContainer, err error) {
 	wd, err := os.Getwd()
@@ -36,11 +60,9 @@ func createTestContainer(ctx context.Context) (ctr *pgtc.PostgresContainer, err 
 				WithStartupTimeout(30*time.Second),
 		),
 	)
-
 	if err != nil {
 		return ctr, fmt.Errorf("run container: %w", err)
 	}
-
 	return ctr, nil
 }
 
@@ -64,7 +86,7 @@ func createTestDB(ctx context.Context) (*bun.DB, DBCleanupFunc, error) {
 		User:     "postgres",
 		Password: "postgres",
 		Port:     p.Port(),
-		SSLMode:  "disabled",
+		SSLMode:  "disable",
 	})
 	if err != nil {
 		return nil, nil, fmt.Errorf("new db: %w", err)
@@ -75,9 +97,8 @@ func createTestDB(ctx context.Context) (*bun.DB, DBCleanupFunc, error) {
 			return fmt.Errorf("db close: %w", err)
 		}
 		if err := ctr.Terminate(ctx); err != nil {
-			return fmt.Errorf("container terminate: %ws", err)
+			return fmt.Errorf("container terminate: %w", err)
 		}
-
 		return nil
 	}
 
