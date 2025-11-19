@@ -8,4 +8,4 @@
 
 [04_go_asteroids](https://github.com/wkdjgf534/go_exp/tree/master/04_go_asteroids) go asteroid
 
-[05_go_concurrency](https://github.com/wkdjgf534/go_exp/tree/master/05_go_concurency) A material from yeat another Udemy course about go concurrency
+[05_go_concurrency](https://github.com/wkdjgf534/go_exp/tree/master/05_go_concurency) A material from yet another Udemy course about go concurrency
