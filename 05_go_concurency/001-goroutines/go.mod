@@ -1,3 +1,3 @@
 module 001-goroutines
 
-go 1.25.4
+go 1.25.5
