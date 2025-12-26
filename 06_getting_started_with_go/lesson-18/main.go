@@ -49,7 +49,3 @@ func main() {
 	sl6 = append(sl6, sl7...)
 	fmt.Println(sl6) // [1, 2, 3, 4, 5, 6, 7, 8]
 }
-
-func somefunction(x [2]int) {
-
-}
