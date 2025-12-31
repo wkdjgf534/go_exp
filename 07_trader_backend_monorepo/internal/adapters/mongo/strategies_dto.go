@@ -15,18 +15,21 @@ type StrategyDTO struct {
 
 func fromStrategyCoreToDTO(input *domain.Strategy) (*StrategyDTO, error) {
 	if input == nil {
-		return nil, fmt.Errorf("invalid imput strategy")
-	}
-
-	id, err := bson.ObjectIDFromHex(input.ID) // convert strong to bson.ObjectID
-	if err != nil {
-		return nil, fmt.Errorf("invalid strategy id: %s", input.ID)
+		return nil, fmt.Errorf("invalid input strategy")
 	}
 
 	result := &StrategyDTO{
-		ID:          id,
 		Name:        input.Name,
 		Description: input.Description,
+	}
+
+	if input.ID != "" {
+		id, err := bson.ObjectIDFromHex(input.ID)
+		if err != nil {
+			return nil, fmt.Errorf("invalid strategy id: '%s'", input.ID)
+		}
+
+		result.ID = id
 	}
 
 	return result, nil

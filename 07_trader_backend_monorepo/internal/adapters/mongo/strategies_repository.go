@@ -44,5 +44,5 @@ func (repo *StrategiesRepo) Insert(ctx context.Context, strategy *domain.Strateg
 }
 
 func (repo *StrategiesRepo) GetByID(ctx context.Context, strategy *domain.Strategy) (*domain.Strategy, error) {
-
+	return &domain.Strategy{}, nil
 }
