@@ -24,7 +24,13 @@ func NewStrategiesRepository(strategiesColl *mongo.Collection) ports.StrategiesR
 }
 
 func (repo *StrategiesRepo) Insert(ctx context.Context, strategy *domain.Strategy) (string, error) {
-	result, err := repo.strategiesColl.InsertOne(ctx, strategy)
+	// traslate domain.Strategy into StrategyDTO
+	strategyDTO, err := fromStrategyCoreToDTO(strategy)
+	if err != nil {
+		return "", err
+	}
+
+	result, err := repo.strategiesColl.InsertOne(ctx, strategyDTO)
 	if err != nil {
 		return "", fmt.Errorf("error inserting strategy: %w", err)
 	}
