@@ -8,5 +8,5 @@ import (
 
 type StrategiesRepository interface {
 	Insert(ctx context.Context, strategy *domain.Strategy) (string, error)
-	GetByID(ctx context.Context, strategy *domain.Strategy) (*domain.Strategy, error)
+	GetByID(ctx context.Context, id string) (*domain.Strategy, error)
 }

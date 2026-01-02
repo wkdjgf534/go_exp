@@ -11,7 +11,7 @@ import (
 )
 
 func Test_FromStrategyCoreToDTO(t *testing.T) {
-	//t.Parallel()
+	t.Parallel()
 
 	mockedMongoID := "68e6bc21731dcf55202ad7fc"
 	mockedObjectID, err := bson.ObjectIDFromHex(mockedMongoID)
@@ -89,4 +89,8 @@ func Test_FromStrategyCoreToDTO(t *testing.T) {
 			assert.EqualValues(tt, tc.Output.Description, output.Description)
 		})
 	}
+}
+
+func Test_FromStrategyDTOToCore(t *testing.T) {
+	t.Parallel()
 }
