@@ -18,7 +18,7 @@ func main() {
 	// Measure the execution time of a code block.
 	start := time.Now()
 	a := 1
-	for i := 0; i < 1000000000; i++ {
+	for range 1000000000 {
 		a++
 	}
 	elapsed := time.Since(start)
