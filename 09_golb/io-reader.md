@@ -1,4 +1,12 @@
-# Go's io.Reader
++++
+title = "Go's io.Reader"
+description = "A quick exploration of Go's io.Reader interface."
+date = 2024-03-10
+
+[author]
+name = "Jon Calhoun"
+email = "jon@calhoun.io"
++++
 
 Go's io.Reader is defined as:
 
