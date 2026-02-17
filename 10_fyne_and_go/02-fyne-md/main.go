@@ -23,6 +23,9 @@ type config struct {
 
 var cfg config
 
+// Packaging
+// fyne package --appVersion 1.0.0 -name MarkDown -release
+
 func main() {
 	// create a fyne app
 	a := app.New()
@@ -61,8 +64,8 @@ func (app *config) createMenuItems(win fyne.Window) {
 	// create three menu items
 	openMenuItem := fyne.NewMenuItem("Open...", app.openFunc(win))
 	saveMenuItem := fyne.NewMenuItem("Save", app.saveFunc(win))
-	app.SaveMenuItem = saveMenuItem
 
+	app.SaveMenuItem = saveMenuItem
 	app.SaveMenuItem.Disabled = true
 	saveAsMenuItem := fyne.NewMenuItem("Save as...", app.saveAsFunc(win))
 
