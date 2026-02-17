@@ -2,11 +2,13 @@ package main
 
 import (
 	"io"
+	"strings"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/storage"
 	"fyne.io/fyne/v2/widget"
 )
 
@@ -58,8 +60,7 @@ func (app *config) makeUI() (*widget.Entry, *widget.RichText) {
 func (app *config) createMenuItems(win fyne.Window) {
 	// create three menu items
 	openMenuItem := fyne.NewMenuItem("Open...", app.openFunc(win))
-	saveMenuItem := fyne.NewMenuItem("Save", func() {
-	})
+	saveMenuItem := fyne.NewMenuItem("Save", app.saveFunc(win))
 	app.SaveMenuItem = saveMenuItem
 
 	app.SaveMenuItem.Disabled = true
@@ -73,6 +74,23 @@ func (app *config) createMenuItems(win fyne.Window) {
 
 	// set the main menu for the application
 	win.SetMainMenu(menu)
+}
+
+var filter = storage.NewExtensionFileFilter([]string{".md", ".MD"})
+
+func (app *config) saveFunc(win fyne.Window) func() {
+	return func() {
+		if app.CurrentFile != nil {
+			write, err := storage.Writer(app.CurrentFile)
+			if err != nil {
+				dialog.ShowError(err, win)
+				return
+			}
+
+			write.Write([]byte(app.EditWidget.Text))
+			defer write.Close()
+		}
+	}
 }
 
 func (app *config) openFunc(win fyne.Window) func() {
@@ -103,6 +121,7 @@ func (app *config) openFunc(win fyne.Window) func() {
 
 		}, win)
 
+		openDialog.SetFilter(filter)
 		openDialog.Show()
 	}
 }
@@ -120,6 +139,11 @@ func (app *config) saveAsFunc(win fyne.Window) func() {
 				return
 			}
 
+			if !strings.HasSuffix(strings.ToLower(write.URI().String()), ".md") {
+				dialog.ShowInformation("Error", "Please name your file with a .md extension!", win)
+				return
+			}
+
 			// save file
 			write.Write([]byte(app.EditWidget.Text))
 			app.CurrentFile = write.URI()
@@ -129,6 +153,8 @@ func (app *config) saveAsFunc(win fyne.Window) func() {
 			win.SetTitle(win.Title() + " _ " + write.URI().Name())
 			app.SaveMenuItem.Disabled = false
 		}, win)
+		saveDialog.SetFileName("untitled.md")
+		saveDialog.SetFilter(filter)
 		saveDialog.Show()
 	}
 }
