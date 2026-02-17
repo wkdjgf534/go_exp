@@ -1,6 +1,8 @@
 package main
 
 import (
+	"io"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
@@ -8,6 +10,8 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
+// config holds information that we can share with any function
+// that has a receiver of type *config
 type config struct {
 	EditWidget    *widget.Entry
 	PreivewWidget *widget.RichText
@@ -48,16 +52,16 @@ func (app *config) makeUI() (*widget.Entry, *widget.RichText) {
 	return edit, preview
 }
 
+// makeUI creates two widgets, assigns them to the app config, and
+// adds a listener on the edit widget that updates the preview widget
+// with parsed markdown whenever the user types something
 func (app *config) createMenuItems(win fyne.Window) {
 	// create three menu items
-	openMenuItem := fyne.NewMenuItem("Open...", func() {
-
-	})
-
+	openMenuItem := fyne.NewMenuItem("Open...", app.openFunc(win))
 	saveMenuItem := fyne.NewMenuItem("Save", func() {
 	})
-
 	app.SaveMenuItem = saveMenuItem
+
 	app.SaveMenuItem.Disabled = true
 	saveAsMenuItem := fyne.NewMenuItem("Save as...", app.saveAsFunc(win))
 
@@ -69,6 +73,38 @@ func (app *config) createMenuItems(win fyne.Window) {
 
 	// set the main menu for the application
 	win.SetMainMenu(menu)
+}
+
+func (app *config) openFunc(win fyne.Window) func() {
+	return func() {
+		openDialog := dialog.NewFileOpen(func(read fyne.URIReadCloser, err error) {
+			if err != nil {
+				dialog.ShowError(err, win)
+				return
+			}
+
+			if read == nil {
+				return
+			}
+
+			defer read.Close()
+
+			data, err := io.ReadAll(read)
+			if err != nil {
+				dialog.ShowError(err, win)
+				return
+			}
+
+			app.EditWidget.SetText(string(data))
+
+			app.CurrentFile = read.URI()
+			win.SetTitle(win.Title() + " _ " + read.URI().Name())
+			app.SaveMenuItem.Disabled = false
+
+		}, win)
+
+		openDialog.Show()
+	}
 }
 
 func (app *config) saveAsFunc(win fyne.Window) func() {
