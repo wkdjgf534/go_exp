@@ -11,13 +11,14 @@ import (
 )
 
 type Config struct {
-	App            fyne.App
-	InfoLog        *log.Logger
-	ErrorLog       *log.Logger
-	MainWindow     fyne.Window
-	PriceContainer *fyne.Container
-	ToolBar        *widget.Toolbar
-	HTTPClient     *http.Client
+	App                 fyne.App
+	InfoLog             *log.Logger
+	ErrorLog            *log.Logger
+	MainWindow          fyne.Window
+	PriceContainer      *fyne.Container
+	ToolBar             *widget.Toolbar
+	PriceChartContainer *fyne.Container
+	HTTPClient          *http.Client
 }
 
 var myApp Config
@@ -38,7 +39,7 @@ func main() {
 
 	// create and size a fyne window
 	myApp.MainWindow = fyneApp.NewWindow("GoldWatcher")
-	myApp.MainWindow.Resize(fyne.NewSize(770, 410))
+	myApp.MainWindow.Resize(fyne.NewSize(770, 470))
 	myApp.MainWindow.SetFixedSize(true)
 	myApp.MainWindow.SetMaster()
 

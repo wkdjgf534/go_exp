@@ -1,6 +1,9 @@
 package main
 
 import (
+	"time"
+
+	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/theme"
@@ -18,9 +21,12 @@ func (app *Config) makeUI() {
 	toolBar := app.getToolBar()
 	app.ToolBar = toolBar
 
+	//
+	priceTabContent := app.pricesTab()
+
 	// get app tabs
 	tabs := container.NewAppTabs(
-		container.NewTabItemWithIcon("Prices", theme.HomeIcon(), canvas.NewText("Price content goes here", nil)),
+		container.NewTabItemWithIcon("Prices", theme.HomeIcon(), priceTabContent),
 		container.NewTabItemWithIcon("Holdings", theme.InfoIcon(), canvas.NewText("Holdings content goes here", nil)),
 	)
 	tabs.SetTabLocation(container.TabLocationTop)
@@ -30,4 +36,28 @@ func (app *Config) makeUI() {
 
 	app.MainWindow.SetContent(finalContent)
 
+	go func() {
+		ticker := time.NewTicker(50 * time.Second)
+		defer ticker.Stop()
+
+		for range ticker.C {
+			app.refreshPriceContent()
+		}
+	}()
+
+}
+
+func (app *Config) refreshPriceContent() {
+	app.InfoLog.Print("refreshing prices")
+
+	open, current, change := app.getPriceText()
+	chart := app.getChart()
+
+	fyne.Do(func() {
+		app.PriceContainer.Objects = []fyne.CanvasObject{open, current, change}
+		app.PriceContainer.Refresh()
+
+		app.PriceChartContainer.Objects = []fyne.CanvasObject{chart}
+		app.PriceChartContainer.Refresh()
+	})
 }
