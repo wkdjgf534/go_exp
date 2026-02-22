@@ -89,7 +89,7 @@ func (repo *SQLiteRepository) UpdateHolding(id int64, updated Holdings) error {
 	if id == 0 {
 		return errors.New("invalid updated id")
 	}
-	stmt := "Update holdings set amount = ?, purchase_date = ? purchase_price = ? where id = ?"
+	stmt := "Update holdings set amount = ?, purchase_date = ?, purchase_price = ? where id = ?"
 	res, err := repo.Conn.Exec(stmt, updated.Amount, updated.PurchaseDate.Unix(), updated.PurchasePrice, id)
 	if err != nil {
 		return err
@@ -119,7 +119,7 @@ func (repo *SQLiteRepository) DeleteHolding(id int64) error {
 	}
 
 	if rowsAffected == 0 {
-		return errUpdateFailed
+		return errDeleteFailed
 	}
 
 	return nil
