@@ -6,16 +6,19 @@ import (
 	"time"
 )
 
+// SQLiteRepository the type for a repository that connects to sqlite database
 type SQLiteRepository struct {
 	Conn *sql.DB
 }
 
+// NewSQLiteRepository returns a new repository with a connection to sqlite
 func NewSQLiteRepository(db *sql.DB) *SQLiteRepository {
 	return &SQLiteRepository{
 		Conn: db,
 	}
 }
 
+// Migrate creates the table(s) we need
 func (repo *SQLiteRepository) Migrate() error {
 	query := `
 	create table if not exists holdings(
@@ -29,6 +32,7 @@ func (repo *SQLiteRepository) Migrate() error {
 	return err
 }
 
+// InsertHolding inserts one record into the database
 func (repo *SQLiteRepository) InsertHolding(holdings Holdings) (*Holdings, error) {
 	stmt := "insert into holdings (amount, purchase_date, purchase_price) values (?, ?, ?)"
 
@@ -46,6 +50,7 @@ func (repo *SQLiteRepository) InsertHolding(holdings Holdings) (*Holdings, error
 	return &holdings, nil
 }
 
+// AllHoldings returns all holdings, by purchase date
 func (repo *SQLiteRepository) AllHoldings() ([]Holdings, error) {
 	query := "select id, amount, purchase_date, purchase_price from holdings order by purchase_date"
 	rows, err := repo.Conn.Query(query)
