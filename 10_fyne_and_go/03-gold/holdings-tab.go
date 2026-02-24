@@ -16,7 +16,9 @@ import (
 func (app *Config) holdingsTab() *fyne.Container {
 	app.HoldingsTable = app.getHoldingsTable()
 
-	return nil
+	holdingsContainer := container.NewVBox(app.HoldingsTable)
+
+	return holdingsContainer
 }
 
 func (app *Config) getHoldingsTable() *widget.Table {
@@ -41,7 +43,8 @@ func (app *Config) getHoldingsTable() *widget.Table {
 						if err != nil {
 							app.ErrorLog.Println(err)
 						}
-						// refresh the holdings table
+
+						app.refreshHoldingsTable() // refresh the holdings table
 					}, app.MainWindow)
 				})
 				w.Importance = widget.HighImportance
