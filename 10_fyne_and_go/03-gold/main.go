@@ -21,17 +21,20 @@ import (
 // those things, we need a reference to them, and this is a convenient place to put
 // them, instead of package level variables.
 type Config struct {
-	App                 fyne.App
-	InfoLog             *log.Logger
-	ErrorLog            *log.Logger
-	DB                  repository.Repository
-	MainWindow          fyne.Window
-	PriceContainer      *fyne.Container
-	ToolBar             *widget.Toolbar
-	PriceChartContainer *fyne.Container
-	Holdings            [][]any
-	HoldingsTable       *widget.Table
-	HTTPClient          *http.Client
+	App                            fyne.App
+	InfoLog                        *log.Logger
+	ErrorLog                       *log.Logger
+	DB                             repository.Repository
+	MainWindow                     fyne.Window
+	PriceContainer                 *fyne.Container
+	ToolBar                        *widget.Toolbar
+	PriceChartContainer            *fyne.Container
+	Holdings                       [][]any
+	HoldingsTable                  *widget.Table
+	HTTPClient                     *http.Client
+	AddHoldingsPurchaseAmountEntry *widget.Entry
+	AddHoldingsPurchaseDateEntry   *widget.Entry
+	AddHoldingsPurchasePriceEntry  *widget.Entry
 }
 
 func main() {
