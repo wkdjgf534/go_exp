@@ -1,6 +1,6 @@
 module trader-backend_monorepo
 
-go 1.25
+go 1.25.6
 
 require (
 	github.com/stretchr/testify v1.11.1
