@@ -1,13 +1,13 @@
-package stratigies
+package strategies
 
 import (
 	"context"
 	"errors"
 	"testing"
-	"trader-backend_monorepo/internal/domain"
 	"trader-backend_monorepo/internal/mocks"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestCreateStrategyUC_Handle(t *testing.T) {
@@ -31,16 +31,19 @@ func TestCreateStrategyUC_Handle(t *testing.T) {
 	t.Run("error creating strategy returns error", func(tt *testing.T) {
 		tt.Parallel()
 
-		stratigiesRepo := mocks.StrategiesRepositoryMock{}
-		stratigiesRepo.InsertFn = func(ctx context.Context, strategy *domain.Strategy) (string, error) {
-			return "", errors.New("some db error when inserting strategy")
-		}
+		ctx := context.Background()
+
+		stratigiesRepo := mocks.NewStrategiesRepositoryMock(tt)
+
+		stratigiesRepo.
+			On("Insert", ctx, mock.Anything).
+			Return("", errors.New("some db error when inserting strategy")).
+			Once()
 
 		uc := &strategyCreateUC{
-			strategiesRepo: &stratigiesRepo,
+			strategiesRepo: stratigiesRepo,
 		}
 
-		ctx := context.Background()
 		req := &CreateStrategyRequest{
 			Name: "strategy name",
 		}
@@ -55,16 +58,19 @@ func TestCreateStrategyUC_Handle(t *testing.T) {
 	t.Run("strategy successfully created", func(tt *testing.T) {
 		tt.Parallel()
 
-		stratigiesRepo := mocks.StrategiesRepositoryMock{}
-		stratigiesRepo.InsertFn = func(ctx context.Context, strategy *domain.Strategy) (string, error) {
-			return "strategy-id", nil
-		}
+		ctx := context.Background()
+
+		stratigiesRepo := mocks.NewStrategiesRepositoryMock(tt)
+
+		stratigiesRepo.
+			On("Insert", ctx, mock.Anything).
+			Return("strategy-id", nil).
+			Once()
 
 		uc := &strategyCreateUC{
-			strategiesRepo: &stratigiesRepo,
+			strategiesRepo: stratigiesRepo,
 		}
 
-		ctx := context.Background()
 		req := &CreateStrategyRequest{
 			Name: "strategy name",
 		}

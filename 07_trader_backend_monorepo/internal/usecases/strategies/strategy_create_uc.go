@@ -1,4 +1,4 @@
-package stratigies
+package strategies
 
 import (
 	"context"
