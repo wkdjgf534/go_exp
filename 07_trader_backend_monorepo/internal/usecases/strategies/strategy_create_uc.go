@@ -9,7 +9,7 @@ import (
 	"trader-backend_monorepo/pkg/apierrors"
 )
 
-type StrategyCreateUC interface {
+type CreateUC interface {
 	Handle(ctx context.Context, req *CreateStrategyRequest) (*CreateStrategyResponse, error)
 }
 
@@ -22,7 +22,7 @@ type CreateStrategyRequest struct {
 	Descriiption string
 }
 
-func NewStrategyCreateUC(strategiesRepo ports.StrategiesRepository) StrategyCreateUC {
+func NewCreateUC(strategiesRepo ports.StrategiesRepository) CreateUC {
 	result := &strategyCreateUC{
 		strategiesRepo: strategiesRepo,
 	}
