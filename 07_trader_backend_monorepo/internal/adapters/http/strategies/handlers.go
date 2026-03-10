@@ -2,6 +2,7 @@ package strategies
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 
@@ -35,7 +36,8 @@ func (h *handlers) Create(ctx *gin.Context) {
 	}
 
 	svcReq := &strategiesUC.CreateStrategyRequest{
-		Name: request.Name,
+		Name:        request.Name,
+		Description: request.Description,
 	}
 
 	svcResponse, err := h.svc.Create(ctx, svcReq)
@@ -53,5 +55,20 @@ func (h *handlers) Create(ctx *gin.Context) {
 }
 
 func (h *handlers) GetByID(ctx *gin.Context) {
+	request := &strategiesUC.GetStrategyByIDRequest{
+		StrategyID: strings.TrimSpace(ctx.Param("strategy_id")),
+	}
 
+	svcResponse, err := h.svc.GetByID(ctx, request)
+	if err != nil {
+		apiErr := apierrors.FromError(err)
+		ctx.AbortWithStatusJSON(apiErr.StatusCode(), apiErr)
+		return
+	}
+
+	response := &GetByIDResponse{
+		Strategy: *fromStrategyCoreToHTTP(svcResponse.Strategy),
+	}
+
+	ctx.JSON(http.StatusOK, response)
 }

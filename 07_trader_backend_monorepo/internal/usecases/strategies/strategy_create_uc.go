@@ -18,8 +18,8 @@ type strategyCreateUC struct {
 }
 
 type CreateStrategyRequest struct {
-	Name         string
-	Descriiption string
+	Name        string
+	Description string
 }
 
 func NewCreateUC(strategiesRepo ports.StrategiesRepository) CreateUC {
@@ -63,7 +63,7 @@ func (uc *strategyCreateUC) fromCreateStrategyReqToStrategy(req *CreateStrategyR
 
 	result := &domain.Strategy{
 		Name:        req.Name,
-		Description: req.Descriiption,
+		Description: req.Description,
 	}
 
 	return result, nil

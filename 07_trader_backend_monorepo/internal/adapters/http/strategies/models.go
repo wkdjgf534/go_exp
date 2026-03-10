@@ -7,7 +7,8 @@ type Strategy struct {
 }
 
 type CreateRequest struct {
-	Name string `json:"name"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
 
 type CreateResponse struct {
