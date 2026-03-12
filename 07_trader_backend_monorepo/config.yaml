@@ -1,0 +1,15 @@
+environment: development
+
+http:
+  port: 8080
+
+mongo:
+  host: localhost
+  port: 27017
+  username: root
+  password: some-password
+  params:
+  database: traderdb
+  appName: trader-backend_monorepo
+  minPoolSize: 5
+  maxPoolSize: 100
