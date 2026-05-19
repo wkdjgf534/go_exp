@@ -25,6 +25,7 @@ func main() {
 		templateMap: make(map[string]*template.Template),
 	}
 
+	// go run ./cmd/web -cache=true to enable cache
 	flag.BoolVar(&app.config.useCache, "cache", false, "Use template cache")
 	flag.Parse()
 
