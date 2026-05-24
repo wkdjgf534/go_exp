@@ -1,6 +1,23 @@
 package models
 
-import "time"
+import (
+	"database/sql"
+	"time"
+)
+
+var db *sql.DB
+
+type Models struct {
+	DogBreed DogBreed
+}
+
+func New(conn *sql.DB) *Models {
+	db = conn
+
+	return &Models{
+		DogBreed: DogBreed{},
+	}
+}
 
 type DogBreed struct {
 	ID               int    `json:"id"`
@@ -8,10 +25,14 @@ type DogBreed struct {
 	WeightLowLbs     int    `json:"weight_low_lbs"`
 	WeightHighLbs    int    `json:"weight_high_lbs"`
 	AverageWeight    int    `json:"average_weight"`
-	Lifespan         int    `json:"lifespan"`
+	Lifespan         int    `json:"average_lifespan"`
 	Details          string `json:"details"`
 	AlternateNames   string `json:"alternate_names"`
 	GeographicOrigin string `json:"geographic_origin"`
+}
+
+func (d *DogBreed) All() ([]*DogBreed, error) {
+	return d.AllDogBreeds()
 }
 
 type CatBreed struct {
@@ -20,7 +41,7 @@ type CatBreed struct {
 	WeightLowLbs     int    `json:"weight_low_lbs"`
 	WeightHighLbs    int    `json:"weight_high_lbs"`
 	AverageWeight    int    `json:"average_weight"`
-	Lifespan         int    `json:"lifespan"`
+	Lifespan         int    `json:"average_lifespan"`
 	Details          string `json:"details"`
 	AlternateNames   string `json:"alternate_names"`
 	GeographicOrigin string `json:"geographic_origin"`
@@ -32,7 +53,7 @@ type Dog struct {
 	BreedID          int       `json:"breed_id"`
 	BreederID        int       `json:"breeder_id"`
 	Color            string    `json:"color"`
-	DateOfBirth      time.Time `json:"bate_of_birth"`
+	DateOfBirth      time.Time `json:"date_of_birth"`
 	SpayedOrNeutered int       `json:"spayed_neutered"`
 	Description      string    `json:"description"`
 	Weight           int       `json:"weight"`
@@ -46,7 +67,7 @@ type Cat struct {
 	BreedID          int       `json:"breed_id"`
 	BreederID        int       `json:"breeder_id"`
 	Color            string    `json:"color"`
-	DateOfBirth      time.Time `json:"bate_of_birth"`
+	DateOfBirth      time.Time `json:"date_of_birth"`
 	SpayedOrNeutered int       `json:"spayed_neutered"`
 	Description      string    `json:"description"`
 	Weight           int       `json:"weight"`
