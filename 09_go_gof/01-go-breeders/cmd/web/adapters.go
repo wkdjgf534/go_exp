@@ -2,9 +2,11 @@ package main
 
 import (
 	"encoding/json"
-	"go-breeders/models"
+	"encoding/xml"
 	"io"
 	"net/http"
+
+	"go-breeders/models"
 )
 
 // CatBreedsInterface is simply our target interface, which defines all the methods that
@@ -50,4 +52,33 @@ func (jb *JSONBackend) GetAllCatBreeds() ([]*models.CatBreed, error) {
 	}
 
 	return breeds, nil
+}
+
+type XMLBackend struct{}
+
+func (xb *XMLBackend) GetAllCatBreeds() ([]*models.CatBreed, error) {
+	resp, err := http.Get("http://localhost:8081/api/cat-breeds/all/xml")
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	type catBreeds struct {
+		XMLName struct{}           `xml:"cat-breeds"`
+		Breeds  []*models.CatBreed `xml:"cat-breed"`
+	}
+
+	var breeds catBreeds
+	err = xml.Unmarshal(body, &breeds)
+	if err != nil {
+		return nil, err
+	}
+
+	return breeds.Breeds, nil
 }
