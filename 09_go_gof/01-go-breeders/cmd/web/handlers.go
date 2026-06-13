@@ -113,7 +113,7 @@ func (app *application) GetAllCatBreeds(w http.ResponseWriter, r *http.Request) 
 
 	// Since we are using the adapter pattern, this handler does not care where it gets the data from;
 	// it will simply use whatever is stored in app.catService.
-	catBreeds, err := app.catService.GetAllBreeds()
+	catBreeds, err := app.App.CatService.GetAllBreeds()
 	if err != nil {
 		_ = t.ErrorJSON(w, err, http.StatusBadRequest)
 	}
