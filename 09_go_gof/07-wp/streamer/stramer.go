@@ -8,4 +8,33 @@ type ProcessingMessage struct {
 }
 
 type VideoProcessingJob struct {
+	Video Video
+}
+
+type Processor struct {
+	Engine Encoder
+}
+
+type Video struct {
+	ID           int
+	InputFile    string
+	OutputDir    string
+	EncodingType string
+	notifyChan   chan ProcessingMessage
+	// Options *VideoOptions
+	Encoder Processor
+}
+
+func New(jobQueue chan VideoProcessingJob, maxWorkers int) *VideoDispatcher {
+	workerPool := make(chan chan VideoProcessingJob, maxWorkers)
+
+	// TODO: impelement processor logic
+	p := Processor{}
+
+	return &VideoDispatcher{
+		jobQueue:   jobQueue,
+		maxWorkers: maxWorkers,
+		WorkerPool: workerPool,
+		Processor:  p,
+	}
 }
