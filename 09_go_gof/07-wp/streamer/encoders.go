@@ -10,6 +10,7 @@ import (
 // this interface must implement all its methods.
 type Encoder interface {
 	EncodeToMP4(v *Video, baseFileName string) error
+	EncodeToHLS(v *Video, baseFileNaME string) error
 }
 
 // VideoEncoder is a type which satisfies the Encoder interface because it implements
@@ -18,14 +19,14 @@ type VideoEncoder struct{}
 
 // EncodeToMP4 takes a Video object and a base file name, and encodes to MP4 format.
 func (ve *VideoEncoder) EncodeToMP4(v *Video, baseFileName string) error {
-	// Create a transcoder
+	// Create a transcoder.
 	trans := new(transcoder.Transcoder)
 
 	// Build the output path.
-	outPath := fmt.Sprintf("%s/%s", v.OutputDir, baseFileName)
+	outputPath := fmt.Sprintf("%s/%s.mp4", v.OutputDir, baseFileName)
 
 	// Initialize the transcoder.
-	err := trans.Initialize(v.InputFile, outPath)
+	err := trans.Initialize(v.InputFile, outputPath)
 	if err != nil {
 		return err
 	}
@@ -33,13 +34,18 @@ func (ve *VideoEncoder) EncodeToMP4(v *Video, baseFileName string) error {
 	// Set codec.
 	trans.MediaFile().SetVideoCodec("libx264")
 
-	// Start the tr5anscoding process.
+	// Start the transcoding process.
 	done := trans.Run(false)
 
 	err = <-done
 	if err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func (ve VideoEncoder) EncodeToHLS(v *Video, baseFileNaME string) error {
 
 	return nil
 }

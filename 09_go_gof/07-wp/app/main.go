@@ -17,21 +17,19 @@ func main() {
 	videoQueue := make(chan streamer.VideoProcessingJob, numJobs)
 	defer close(videoQueue)
 
-	// Get a worker pool
+	// Get a worker pool.
 	wp := streamer.New(videoQueue, numWorkers)
 
-	// Start the worker pool
+	// Start the worker pool.
 	wp.Run()
-	fmt.Println("Worker pool started. Press enter to continue.")
-	_, _ = fmt.Scanln()
-
-	// Create a video to send to the worker pool
+	
+	// Create a video to send to the worker pool.
 	video := wp.NewVideo(1, "./input/puppy1.mp4", "./output", "mp4", notifyChan, nil)
 
-	// Send the videos to the worker pool
+	// Send the videos to the worker pool.
 	videoQueue <- streamer.VideoProcessingJob{Video: video}
 
-	// Print out results
+	// Print out results.
 	for i := 1; i <= numJobs; i++ {
 		msg := <-notifyChan
 		fmt.Println("i:", i, "msg:", msg)
