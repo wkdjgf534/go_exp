@@ -78,6 +78,7 @@ func (v *Video) encode() {
 			return
 		}
 		fileName = fmt.Sprintf("%s.mp4", name)
+
 	case "hls":
 		// encode the video
 		name, err := v.encodeToHLS()
@@ -87,6 +88,7 @@ func (v *Video) encode() {
 			return
 		}
 		fileName = fmt.Sprintf("%s.m3u8", name)
+
 	default:
 		v.sendToNotifyChan(false, "", fmt.Sprintf("error processing for %d: invalid encoding type", v.ID))
 		return
@@ -128,7 +130,7 @@ func (v *Video) encodeToHLS() (string, error) {
 	}
 
 	err := v.Encoder.Engine.EncodeToHLS(v, baseFileName)
-	if err != nil {
+	if err!= nil {
 		return "", err
 	}
 
