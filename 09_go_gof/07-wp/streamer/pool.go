@@ -1,5 +1,7 @@
 package streamer
 
+import "fmt"
+
 // VideoDispatcher holds info for a dispatcher.
 type VideoDispatcher struct {
 	WorkerPool chan chan VideoProcessingJob
@@ -20,6 +22,7 @@ type videoWorker struct {
 
 // newVideoWorker takes a numeric id and a channel of chan VideoProcessingJob, and returns a videoWorker object.
 func newVideoWorker(id int, workerPool chan chan VideoProcessingJob) videoWorker {
+	fmt.Println("newVideoWorker: creating video worker id", id)
 	return videoWorker{
 		id:         id,
 		jobQueue:   make(chan VideoProcessingJob),
@@ -29,6 +32,7 @@ func newVideoWorker(id int, workerPool chan chan VideoProcessingJob) videoWorker
 
 // start starts an individual worker.
 func (w videoWorker) start() {
+	fmt.Println("w.start(): starting worker id", w.id)
 	go func() {
 		for {
 			// Add jobQueue to the worker pool
@@ -46,7 +50,9 @@ func (w videoWorker) start() {
 // Run runs the workers, and makes the worker pool active. Once we run
 // everything, we can push jobs onto the channel to process them.
 func (vd *VideoDispatcher) Run() {
+	fmt.Println("vd.Run(): starting worker pool by running workers")
 	for i := 0; i < vd.maxWorkers; i++ {
+		fmt.Println("vd.Run: starting worker id", i+1)
 		worker := newVideoWorker(i+1, vd.WorkerPool)
 		worker.start()
 	}
@@ -59,6 +65,7 @@ func (vd *VideoDispatcher) dispatch() {
 	for {
 		// Wait for a job to come in.
 		job := <-vd.jobQueue
+		fmt.Println("vd.dispatch(): sending job", job.Video.ID, "to worker job queue")
 
 		go func() {
 			workerJobQueue := <-vd.WorkerPool
@@ -69,5 +76,6 @@ func (vd *VideoDispatcher) dispatch() {
 
 // processVideoJob processes the main queue job with a particular worker.
 func (w videoWorker) processVideoJob(video Video) {
+	fmt.Println("w.processVideoJob: starting encode on video", video.ID)
 	video.encode()
 }
