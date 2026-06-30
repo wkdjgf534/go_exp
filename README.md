@@ -16,8 +16,8 @@
 
 [08_interview_tasks](https://github.com/wkdjgf534/go_exp/tree/master/08_interview_tasks) Interview tasks and questions
 
+[09_go_gof](https://github.com/wkdjgf534/go_exp/tree/master/09_go_gof) Working with Design Patterns in Go
+
 [10_fyne_and_go](https://github.com/wkdjgf534/go_exp/tree/master/10_fyne_and_go) A basic course how to write a go applications with Fyne library
 
 [11_golang_gui](https://github.com/wkdjgf534/go_exp/tree/master/11_golang_gui) Some videos from youtube about Fyne library
-
-[12_gocourse](https://github.com/wkdjgf534/go_exp/tree/master/12_gocourse) A yet another go course
