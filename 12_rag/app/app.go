@@ -17,6 +17,7 @@ package app
 import (
 	"context"
 
+	"rag-course/chat"
 	"rag-course/config"
 	"rag-course/llm"
 )
