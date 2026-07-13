@@ -81,6 +81,24 @@ func New(cfg config.Config) *Client {
 	return &Client{cfg: cfg, sdk: openai.NewClient(opts...)}
 }
 
+// ChatStream is the streaming counterpart to Chat. It opens a streaming
+// chat-completions request and invokes onDelta with each content
+// fragment as it arrives. The fully assembled Message is returned once
+// the server signals completion.
+//
+// Why streaming matters for LLM UX: chat models generate
+// token-by-token. A 500-token reply at 30 tokens/sec is ~17 seconds.
+// Without streaming the user stares at a blank screen the whole
+// time; with streaming they see words appear immediately. Same total
+// latency, dramatically better perceived latency.
+//
+// SSE primer: the server keeps the HTTP response open and writes
+// "data: <json>\n\n" lines as each token arrives. The SDK parses those
+// lines for us — we just iterate the resulting stream and pull
+// .Choices[0].Delta.Content out of each chunk.
+//
+// onDelta may be nil, in which case deltas are still accumulated but
+// not surfaced during the stream.
 func (c *Client) ChatStream(ctx context.Context, messages []Message, onDelta func(string)) (Message, error) {
 	stream := c.sdk.Chat.Completions.NewStreaming(ctx, openai.ChatCompletionNewParams{
 		Model:    c.cfg.Model,
@@ -116,6 +134,10 @@ func (c *Client) ChatStream(ctx context.Context, messages []Message, onDelta fun
 	return Message{Role: role, Content: content.String()}, nil
 }
 
+// toSDKMessages converts our role-tagged Message slice to the SDK's
+// param-union form. The default branch is a defensive fallback — every
+// caller in this codebase tags messages "system", "user", or
+// "assistant", so it should not fire in practice.
 func toSDKMessages(messages []Message) []openai.ChatCompletionMessageParamUnion {
 	out := make([]openai.ChatCompletionMessageParamUnion, 0, len(messages))
 
