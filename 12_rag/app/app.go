@@ -16,18 +16,51 @@ package app
 // the foreground loop.
 import (
 	"context"
+	"log"
+	"os"
 
 	"rag-course/chat"
 	"rag-course/config"
 	"rag-course/llm"
+	"rag-course/vector"
+	"rag-course/vector/pgvector"
 )
 
 // Run is the program's main loop. In lesson 1 there is only the
 // foreground REPL, so Run constructs the LLM client and hands it
 // straight to chat.RunREPL.
 func Run(ctx context.Context, cfg config.Config) error {
+	logger := log.New(os.Stderr, "[rag] ", log.LstdFlags)
+
 	client := llm.New(cfg)
+
+	store, err := openStore(ctx, cfg)
+	if err != nil {
+		logger.Printf("vector store disabled: %v", err)
+	}
+
+	if store != nil {
+		defer store.Close()
+		logger.Printf("vector store is ready")
+	}
+
 	return chat.RunREPL(ctx, client, chat.Options{
 		SystemPromptFile: cfg.SystemPromptFile,
 	})
+}
+
+func openStore(ctx context.Context, cfg config.Config) (vector.Store, error) {
+	if cfg.DatabaseURL == "" {
+		return nil, nil
+	}
+
+	s, err := pgvector.New(ctx, pgvector.Options{
+		DSN:          cfg.DatabaseURL,
+		EmbeddingDim: cfg.EmbeddingDim,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return s, nil
 }
