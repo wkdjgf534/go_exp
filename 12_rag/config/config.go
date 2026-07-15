@@ -49,13 +49,36 @@ type Config struct {
 	// file is silently treated as "no system prompt".
 	SystemPromptFile string
 
+	// DatabaseURL is the libpq-style DSN for the
+	// Postgres + pgvector instance. Empty means "no vector store" —
+	// chat still runs, just without retrieval. Populated from
+	// DATABASE_URL.
 	DatabaseURL string
 
+	// EmbeddingDim is the dimensionality of the
+	// embedding model that will populate the vector column. It is
+	// baked into the column type at first migration (vector(1536) is
+	// a different SQL type from vector(768)) and cannot be changed
+	// afterward without recreating the table.
+	//
+	//   text-embedding-3-small  → 1536
+	//   text-embedding-3-large  → 3072
+	//   nomic-embed-text         → 768
 	EmbeddingDim int
 
+	// embedder endpoint config. EmbeddingBaseURL and
+	// EmbeddingAPIKey let the embedder talk to a different OpenAI-
+	// compatible endpoint than the chat client. The motivating case:
+	// a hosted chat model (Ollama Cloud, OpenAI, Groq, ...) plus a
+	// local embedder (Ollama, LM Studio, ...) — some hosted providers
+	// do not expose embedding models. When EmbeddingBaseURL is empty,
+	// the embedder reuses BaseURL/APIKey, preserving "one server for
+	// everything" for the simple case.
 	EmbeddingBaseURL string
-
-	EmbeddingAPIKey string
+	EmbeddingAPIKey  string
+	EmbeddingModel   string
+	IngestDir        string
+	ProcessedDir     string
 }
 
 // Load reads configuration from the environment, applying defaults
@@ -70,6 +93,9 @@ type Config struct {
 //	OPENAI_API_KEY      no default; sent as a bearer token when set
 //	OPENAI_MODEL        defaults to gpt-4o-mini
 //	SYSTEM_PROMPT_FILE	no default
+//	DATABASE_URL        no default; empty disables the vector store.
+//	                    Example: postgres://rag:rag@localhost:5432/rag?sslmode=disable
+//	EMBEDDING_DIM       defaults to 768 (matches nomic-embed-text).
 func Load() Config {
 	_ = godotenv.Load()
 
@@ -78,10 +104,16 @@ func Load() Config {
 		APIKey:           os.Getenv("OPENAI_API_KEY"),
 		Model:            os.Getenv("OPENAI_MODEL"),
 		SystemPromptFile: os.Getenv("SYSTEM_PROMPT_FILE"),
+		// Read DSN and embedding dimensionality
+		// from the environment. atoiOr below converts the dim string
+		// to int and falls back when the var is unset or malformed.
 		DatabaseURL:      os.Getenv("DATABASE_URL"),
 		EmbeddingDim:     atoiOr(os.Getenv("EMBEDDING_DIM"), 0),
 		EmbeddingBaseURL: os.Getenv("EMBEDDING_BASE_URL"),
 		EmbeddingAPIKey:  os.Getenv("EMBEDDING_ALI_KEY"),
+		EmbeddingModel:   os.Getenv("EMBEDDING_MODEL"),
+		IngestDir:        os.Getenv("INGEST_DIR"),
+		ProcessedDir:     os.Getenv("PROCESSED_DIR"),
 	}
 
 	if cfg.BaseURL == "" {
@@ -92,10 +124,24 @@ func Load() Config {
 		cfg.Model = "gpt-4o-mini"
 	}
 
+	// Default the embedding dimension to 768 to
+	// match nomic-embed-text (the Ollama default this course is built
+	// around) and the existing documents.embedding vector(768) column.
+	// Switch to 1536 for OpenAI's text-embedding-3-small, or 3072 for
+	// text-embedding-3-large — but note the dimension is baked into
+	// the column type at first migration, so changing it later means
+	// dropping and recreating the documents table.
 	if cfg.EmbeddingDim == 0 {
 		cfg.EmbeddingDim = 768
 	}
 
+	// When the user hasn't pointed the embedder at a
+	// separate endpoint, reuse the chat endpoint and key — preserving
+	// "one OpenAI-compatible server for everything" for the simple
+	// case. When EMBEDDING_BASE_URL IS set we leave the API key alone:
+	// a different host means a different (or no) credential, and
+	// silently borrowing the chat key would send it to a server that
+	// didn't ask for it.
 	if cfg.EmbeddingBaseURL == "" {
 		cfg.EmbeddingBaseURL = cfg.BaseURL
 		if cfg.EmbeddingAPIKey == "" {
@@ -103,9 +149,24 @@ func Load() Config {
 		}
 	}
 
+	if cfg.EmbeddingModel == "" {
+		cfg.EmbeddingModel = "nomic-embed-text"
+	}
+
+	if cfg.IngestDir == "" {
+		cfg.IngestDir = "./documents"
+	}
+
+	if cfg.ProcessedDir == "" {
+		cfg.ProcessedDir = "./documents/processed"
+	}
+
 	return cfg
 }
 
+// atoiOr parses s as an int, returning fallback
+// when s is empty or invalid. Used so an unset EMBEDDING_DIM means
+// "apply default" rather than zero.
 func atoiOr(s string, fallback int) int {
 	if s == "" {
 		return fallback
