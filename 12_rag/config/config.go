@@ -49,8 +49,13 @@ type Config struct {
 	// file is silently treated as "no system prompt".
 	SystemPromptFile string
 
-	DatabaseURL  string
+	DatabaseURL string
+
 	EmbeddingDim int
+
+	EmbeddingBaseURL string
+
+	EmbeddingAPIKey string
 }
 
 // Load reads configuration from the environment, applying defaults
@@ -75,6 +80,8 @@ func Load() Config {
 		SystemPromptFile: os.Getenv("SYSTEM_PROMPT_FILE"),
 		DatabaseURL:      os.Getenv("DATABASE_URL"),
 		EmbeddingDim:     atoiOr(os.Getenv("EMBEDDING_DIM"), 0),
+		EmbeddingBaseURL: os.Getenv("EMBEDDING_BASE_URL"),
+		EmbeddingAPIKey:  os.Getenv("EMBEDDING_ALI_KEY"),
 	}
 
 	if cfg.BaseURL == "" {
@@ -87,6 +94,13 @@ func Load() Config {
 
 	if cfg.EmbeddingDim == 0 {
 		cfg.EmbeddingDim = 768
+	}
+
+	if cfg.EmbeddingBaseURL == "" {
+		cfg.EmbeddingBaseURL = cfg.BaseURL
+		if cfg.EmbeddingAPIKey == "" {
+			cfg.EmbeddingAPIKey = cfg.APIKey
+		}
 	}
 
 	return cfg
