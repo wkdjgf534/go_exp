@@ -1,4 +1,4 @@
-package chunk
+package ingest
 
 // chunk splits text into overlapping windows of approximately
 // size bytes. When the window's right edge falls near a paragraph,
