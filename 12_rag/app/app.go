@@ -19,9 +19,11 @@ import (
 	"context"
 	"log"
 	"os"
+	"sync"
 
 	"rag-course/chat"
 	"rag-course/config"
+	"rag-course/ingest"
 	"rag-course/llm"
 	"rag-course/vector"
 	"rag-course/vector/pgvector"
@@ -30,13 +32,17 @@ import (
 // Run is the program's main loop. In lesson 1 there is only the
 // foreground REPL, so Run constructs the LLM client and hands it
 // straight to chat.RunREPL.
-func Run(ctx context.Context, cfg config.Config) error {
+func Run(parent context.Context, cfg config.Config) error {
 	// A stderr-tagged logger so connection-related
 	// status lines ("vector store ready", "vector store disabled: ...")
 	// are clearly distinguishable from chat output on stdout.
 	logger := log.New(os.Stderr, "[rag] ", log.LstdFlags)
 
+	ctx, cancel := context.WithCancel(parent)
+
 	client := llm.New(cfg)
+
+	embedder := llm.NewEmbedder(cfg)
 
 	// Open the vector store. A nil store with a
 	// nil error means "no DATABASE_URL configured" — the chat path
@@ -48,6 +54,21 @@ func Run(ctx context.Context, cfg config.Config) error {
 		logger.Printf("vector store disabled: %v", err)
 	}
 
+	var wg sync.WaitGroup
+	if store != nil {
+		wg.Go(func() {
+			opts := ingest.Options{
+				SourceDir:    cfg.IngestDir,
+				ProcessedDir: cfg.ProcessedDir,
+			}
+
+			if err := ingest.Watch(ctx, opts, embedder, store, logger); err != nil && ctx.Err() == nil {
+				logger.Printf("watcher stoped: %v", err)
+			}
+		})
+		logger.Printf("watching %s for new documents", cfg.IngestDir)
+	}
+
 	// Defer Close so the connection pool drains
 	// cleanly on exit (Ctrl-C, REPL quit, or any error). Guarded by
 	// the nil-check because openStore returns a nil interface when
@@ -57,9 +78,13 @@ func Run(ctx context.Context, cfg config.Config) error {
 		logger.Printf("vector store is ready")
 	}
 
-	return chat.RunREPL(ctx, client, chat.Options{
+	replErr := chat.RunREPL(ctx, client, chat.Options{
 		SystemPromptFile: cfg.SystemPromptFile,
 	})
+
+	cancel()
+	wg.Wait()
+	return replErr
 }
 
 // openStore returns a configured vector.Store, or
