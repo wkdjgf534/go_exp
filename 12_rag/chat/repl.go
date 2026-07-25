@@ -74,6 +74,9 @@ func RunREPL(ctx context.Context, client *llm.Client, retriever *rag.Retriever, 
 		}
 
 		history = append(history, llm.Message{Role: "user", Content: input})
+		spin := startSpinner("thinking")
+		var stopOnce sync.Once
+
 		turn := history
 		if retriever != nil {
 			contextText, retErr := retriever.Retrieve(ctx, history)
@@ -85,8 +88,10 @@ func RunREPL(ctx context.Context, client *llm.Client, retriever *rag.Retriever, 
 			}
 		}
 
-		spin := startSpinner("thinking")
-		var stopOnce sync.Once
+		// For clarification how it works
+		// if len(turn) > 0 {
+		//	fmt.Fprintf(os.Stderr, "\nFinal Prompt:\n\n%s\n\n", turn[len(turn)-1].Content)
+		// }
 
 		reply, err := client.ChatStream(ctx, turn, func(s string) {
 			stopOnce.Do(spin.Stop)
