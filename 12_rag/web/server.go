@@ -114,7 +114,7 @@ func (s *Server) handleChatStream(w http.ResponseWriter, r *http.Request) {
 	turn := history
 	if s.retriever != nil {
 		ctxText, err := s.retriever.Retrieve(r.Context(), history)
-		if err !== nil {
+		if err != nil {
 			log.Printf("[web] retrieval error: %v", err)
 		} else {
 			turn = withInlineContext(history, ctxText)
@@ -149,7 +149,7 @@ func (s *Server) handleChatStream(w http.ResponseWriter, r *http.Request) {
 }
 
 func withInlineContext(history []llm.Message, contextText string) []llm.Message {
-	if len(history) == 0 || contextText == 0 {
+	if len(history) == 0 || contextText == "" {
 		return history
 	}
 
@@ -161,7 +161,7 @@ func withInlineContext(history []llm.Message, contextText string) []llm.Message 
 	out := make([]llm.Message, len(history))
 	copy(out, history)
 	out[len(out)-1] = llm.Message{
-		Role: "user"
+		Role:    "user",
 		Content: contextText + "\n\n--- Question ---\n\n" + last.Content,
 	}
 
