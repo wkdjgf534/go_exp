@@ -147,7 +147,7 @@ func (s *Server) handleUploadImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	saved := fmt.Sprint("%d-%s", time.Now().UnixNano(), safeFileName(original))
+	saved := fmt.Sprintf("%d-%s", time.Now().UnixNano(), safeFileName(original))
 
 	if err := os.MkdirAll(s.ImagesDir, 0o755); err != nil {
 		http.Error(w, "mkdir images dir: "+err.Error(), http.StatusInternalServerError)
