@@ -62,8 +62,10 @@ func InjectionDefense(next http.Handler) http.Handler {
 		switch mt {
 		case "application/json":
 			// inspectJSON
+			inspectJSON(w, r, next)
 		case "multipart/form-data":
 			// inspectMultiPart
+			inspectMultiPart(w, r, next)
 		default:
 			next.ServeHTTP(w, r)
 		}

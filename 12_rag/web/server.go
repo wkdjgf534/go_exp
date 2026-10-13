@@ -84,15 +84,20 @@ func New(client, embedder *llm.Client, retriever *rag.Retriever, opts Options) (
 func (s *Server) Routes() http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.Recoverer)
-
 	r.Get("/chat", s.handleChatPage)
-	r.Post("/api/chat/stream", s.handleChatStream)
-	r.Post("/api/upload", s.handleUpload)
-	if s.ImagesDir != "" {
-		r.Post("/api/upload/image", s.handleUploadImage)
-		fs := http.FileServer(http.Dir(s.ImagesDir))
-		r.Handle("/images/*", http.StripPrefix("/images", fs))
-	}
+
+	r.Group(func(r chi.Router) {
+		r.Use(InjectionDefense)
+		r.Post("/api/chat/stream", s.handleChatStream)
+		r.Post("/api/upload", s.handleUpload)
+		if s.ImagesDir != "" {
+			r.Post("/api/upload/image", s.handleUploadImage)
+		}
+	})
+
+	fs := http.FileServer(http.Dir(s.ImagesDir))
+	r.Handle("/images/*", http.StripPrefix("/images", fs))
+
 	if s.client.HasVision() {
 		r.Post("/api/caption", s.handleCaption)
 	}
